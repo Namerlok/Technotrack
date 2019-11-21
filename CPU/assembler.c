@@ -7,6 +7,7 @@
  * \brief Программа для ассемблирования кода для CPU
  */
 
+#include "WorkWithFiles.h"
 #include "encodings.h"
 #include "assembler.h"
 #include <stdlib.h>
@@ -29,8 +30,8 @@ int main () {
 		
 	WriteFile (&bin, FILE_OUT, WRITING_BINARY);
 	
-	free (buf_file.buf);
-	free (bin.code);
+	free (buf_file.buf);	buf_file.buf = NULL;
+	free (bin.code);		bin.code = NULL;
 	
 	Postscript ();
 
@@ -116,79 +117,80 @@ void Processing (const buf_t *buf_code,
 	
 	for (int i = 0; i < buf_code->size; i++) {
 		for (; isspace (buf_code->buf[i]) && i <= buf_code->size; i++) {}
-		switch (HashWord (&(buf_code->buf[i]))) {
-			case commands[0].hash: //"add"
-				bin->code[bin->size++] = ADD;
-				for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
-				break;
-			case commands[1].hash: //"sub"
-				bin->code[bin->size++] = SUB;
-				for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
-				break;
-			case commands[2].hash: //"mul"
-				bin->code[bin->size++] = MUL;
-				for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
-				break;
-			case commands[3].hash: //"div"
-				bin->code[bin->size++] = DIV;
-				for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
-				break;
-			case commands[4].hash: //"sqrt"
-				bin->code[bin->size++] = SQRT;
-				for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
-				break;
-			case commands[5].hash: //"sin"
-				bin->code[bin->size++] = SIN;
-				for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
-				break;
-			case commands[6].hash: //"cos"
-				bin->code[bin->size++] = COS;
-				for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
-				break;
-			case commands[7].hash: //"end"
-				bin->code[bin->size++] = END;
-				for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
-				break;
-			case commands[8].hash: //"push"
-				ProcessingComPush (buf_code, &i, bin);
-				break;
-			case commands[9].hash: //"pop"
-				ProcessingComPop (buf_code, &i, bin);
-				break;
-			case commands[10].hash: //"jmp"
-				Jump (buf_code, &i, marks, bin, JMP);
-				break;
-			case commands[11].hash: //"ja"
-				Jump (buf_code, &i, marks, bin, JA);
-				break;
-			case commands[12].hash: //"jae"
-				Jump (buf_code, &i, marks, bin, JAE);
-				break;
-			case commands[13].hash: //"jb"
-				Jump (buf_code, &i, marks, bin, JB);
-				break;
-			case commands[14].hash: //"jbe"
-				Jump (buf_code, &i, marks, bin, JBE);
-				break;
-			case commands[15].hash: //"je"
-				Jump (buf_code, &i, marks, bin, JE);
-				break;
-			case commands[16].hash: //"jne"
-				Jump (buf_code, &i, marks, bin, JNE);
-				break;
-			case commands[17].hash: //"<-"
-				JumpMark (buf_code, &i, marks, bin);
-				break;
-			case commands[18].hash: //"call"
+		long int hash = HashWord (&(buf_code->buf[i]));
+		if (hash == commands[0].hash) { //"add"
+			bin->code[bin->size++] = ADD;
+			for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
+			break;
+		} else if (hash == commands[1].hash) { //"sub"
+			bin->code[bin->size++] = SUB;
+			for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
+			break;
+		} else if (hash == commands[2].hash) { //"mul"
+			bin->code[bin->size++] = MUL;
+			for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
+			break;
+		} else if (hash == commands[3].hash) { //"div"
+			bin->code[bin->size++] = DIV;
+			for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
+			break;
+		} else if (hash == commands[4].hash) { //"sqrt"
+			bin->code[bin->size++] = SQRT;
+			for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
+			break;
+		} else if (hash == commands[5].hash) { //"sin"
+			bin->code[bin->size++] = SIN;
+			for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
+			break;
+		} else if (hash == commands[6].hash) { //"cos"
+			bin->code[bin->size++] = COS;
+			for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
+			break;
+		} else if (hash == commands[7].hash) { //"end"
+			bin->code[bin->size++] = END;
+			for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
+			break;
+		} else if (hash == commands[8].hash) { //"push"
+			ProcessingComPush (buf_code, &i, bin);
+			break;
+		} else if (hash == commands[9].hash) { //"pop"
+			ProcessingComPop (buf_code, &i, bin);
+			break;
+		} else if (hash == commands[10].hash) { //"jmp"
+			Jump (buf_code, &i, marks, bin, JMP);
+			break;
+		} else if (hash == commands[11].hash) { //"ja"
+			Jump (buf_code, &i, marks, bin, JA);
+			break;
+		} else if (hash == commands[12].hash) { //"jae"
+			Jump (buf_code, &i, marks, bin, JAE);
+			break;
+		} else if (hash == commands[13].hash) { //"jb"
+			Jump (buf_code, &i, marks, bin, JB);
+			break;
+		} else if (hash == commands[14].hash) { //"jbe"
+			Jump (buf_code, &i, marks, bin, JBE);
+			break;
+		} else if (hash == commands[15].hash) { //"je"
+			Jump (buf_code, &i, marks, bin, JE);
+			break;
+		} else if (hash == commands[16].hash) { //"jne"
+			Jump (buf_code, &i, marks, bin, JNE);
+			break;
+		} else if (hash == commands[17].hash) { //"<-"
+			JumpMark (buf_code, &i, marks, bin);
+			break;
+		} else if (hash == commands[18].hash) { //"call"
 ////////////////////////////////////////////////////////
-				break;
-			case commands[19].hash: //";"
-				break;
-			default: 
-				char *word = NULL;
-				fprintf (stderr, "ERROR: invalid command: \"%s\"", word = WordFromString(buf_code->(buf + *iter)););
-				free (word); word =NULL;
-				break;
+			break;
+		} else if (hash == commands[19].hash) { //";"
+			break;
+		} else {
+			char *word = NULL;
+			fprintf (stderr, "ERROR: invalid command: \"%s\"", 
+					 word = WordFromString(&(buf_code->buf[i])));
+			free (word); word =NULL;
+			break;
 		}
 	}
 }
@@ -198,7 +200,7 @@ void Jump (const buf_t *buf_code,
 		   const marks_t *marks,
 		   code_t *bin,
 		   const int encod) {
-	assert (com != NULL);
+	assert (buf_code != NULL);
 	assert (iter != NULL);
 	assert (marks != NULL);
 	assert (bin != NULL);
@@ -209,7 +211,7 @@ void Jump (const buf_t *buf_code,
 	
 	for (; isspace (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить пробельных символов
 	
-	bin->code[bin->size++] = FindMark(marks, HashWord (buf_code->(buf + *iter)));
+	bin->code[bin->size++] = FindMark(marks, HashWord (&(buf_code->buf[*iter])));
 	
 	for (; isalpha (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить название метки
 }
@@ -220,8 +222,8 @@ int FindMark (const marks_t *marks,
 	int pos = 0;
 	
 	for (int i = 0; i < marks->size; i++) {
-		if (marks->(mark + i)->name == hash_name) {
-			pos = marks->(mark + i)->pos;
+		if (marks->mark[i].name == hash_name) {
+			pos = marks->mark[i].pos;
 			break;
 		}
 	}
@@ -233,7 +235,7 @@ void JumpMark (const buf_t *buf_code,
 			   int *iter,
 			   marks_t *marks,
 			   const code_t *bin) {
-	assert (com != NULL);
+	assert (buf_code != NULL);
 	assert (iter != NULL);
 	assert (marks != NULL);
 	assert (bin != NULL);
@@ -241,19 +243,19 @@ void JumpMark (const buf_t *buf_code,
 	*iter += 2; // пропуск символа метки "<-"
 	for (; isspace (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить пробельных символов
 	
-	hash_name = HashWord (buf_code->(buf + *iter));
+	long int hash_name = HashWord (&(buf_code->buf[*iter]));
 	
 	if (!FindMark(marks, hash_name)) {
 		char *word = NULL;
 		fprintf (stderr, "ERROR: This marker (%s) is already in use.", 
-				 word = WordFromString(buf_code->(buf + *iter)));
-		free (word); word =NULL;
+				 word = WordFromString(&(buf_code->buf[*iter])));
+		free (word); word = NULL;
 	}
 	
 	for (; isalpha (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++) {} // пропустить название метки
 	
-	marks->(mark + marks->size)->name = hash_name;
-	marks->(mark + marks->size)->pos = bin->size;
+	marks->mark[marks->size].name = hash_name;
+	marks->mark[marks->size].pos = bin->size;
 	marks->size++;
 }
 
@@ -261,11 +263,12 @@ char *WordFromString (const char *string) {
 	assert (string != NULL);
 	
 	char *word = calloc (MAX_SIZE_WORD, sizeof (char));
-	int i = 0;
 	
+	int i = 0;
 	for (; isspace (string[i]) && i < strlen(string); i++)  {} // пропустить пробельных символов
 	
-	for (int j = 0; !isspace (string[i]) && i < strlen(string) && j < MAX_SIZE_WORD; i++, j++) {
+	int j = 0;
+	for (; !isspace (string[i]) && i < strlen(string) && j < MAX_SIZE_WORD; i++, j++) {
 		word[j] = string[i];
 	} 
 	word[++j] = '\0';
@@ -289,21 +292,21 @@ void ProcessingComPush (const buf_t *buf_code,
 		for (; isspace (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить пробельных символов
 		if (isdigit (buf_code->buf[*iter])) {
 			bin->code[bin->size++] = PUSH_STK;
-			bin->code[bin->size++] = DigitFromString(buf_code->buf[*iter]);
+			bin->code[bin->size++] = DigitFromString(&(buf_code->buf[*iter]));
 			for (; isdigit (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить пробельных символов
-		} else if (!strncmp (buf_code->(buf + *iter), "ax", 2)) {
+		} else if (!strncmp (&(buf_code->buf[*iter]), "ax", 2)) {
 			bin->code[bin->size++] = PUSH_REG;
 			bin->code[bin->size++] = AX;
 			*iter += 2; // пропус 'ax'
-		} else if (!strncmp (buf_code->(buf + *iter), "bx", 2)) {
+		} else if (!strncmp (&(buf_code->buf[*iter]), "bx", 2)) {
 			bin->code[bin->size++] = PUSH_REG;
 			bin->code[bin->size++] = BX;
 			*iter += 2; // пропус 'bx'
-		} else if (!strncmp (buf_code->(buf + *iter), "cx", 2)) {
+		} else if (!strncmp (&(buf_code->buf[*iter]), "cx", 2)) {
 			bin->code[bin->size++] = PUSH_REG;
 			bin->code[bin->size++] = CX;
 			*iter += 2; // пропус 'cx'
-		} else if (!strncmp (buf_code->(buf + *iter), "dx", 2)) {
+		} else if (!strncmp (&(buf_code->buf[*iter]), "dx", 2)) {
 			bin->code[bin->size++] = PUSH_REG;
 			bin->code[bin->size++] = DX;
 			*iter += 2; // пропус 'dx'
@@ -316,12 +319,12 @@ void ProcessingComPush (const buf_t *buf_code,
 		} else {
 			fprintf (stderr, "Error: Invalid argument to push!");
 		}
-	} else if (!strncmp (buf_code->(buf + *iter), "Ram[", 4)) {
+	} else if (!strncmp (&(buf_code->buf[*iter]), "Ram[", 4)) {
 		*iter += 4; // пропус "Ram["
 		for (; isspace (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить пробельных символов
 		if (isdigit (buf_code->buf[*iter])) {
 			bin->code[bin->size++] = PUSH_RAM;
-			bin->code[bin->size++] = DigitFromString(buf_code->buf[*iter]);
+			bin->code[bin->size++] = DigitFromString(&(buf_code->buf[*iter]));
 			for (; isdigit (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить пробельных символов
 		} else {
 			fprintf (stderr, "Error: Invalid argument to push!");
@@ -351,19 +354,19 @@ void ProcessingComPop (const buf_t *buf_code,
 		
 		for (; isspace (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить пробельных символов
 		
-		if (!strncmp (buf_code->(buf + *iter), "ax", 2)) {
+		if (!strncmp (&(buf_code->buf[*iter]), "ax", 2)) {
 			bin->code[bin->size++] = POP_REG;
 			bin->code[bin->size++] = AX;
 			*iter += 2; // пропус 'ax'
-		} else if (!strncmp (buf_code->(buf + *iter), "bx", 2)) {
+		} else if (!strncmp (&(buf_code->buf[*iter]), "bx", 2)) {
 			bin->code[bin->size++] = POP_REG;
 			bin->code[bin->size++] = BX;
 			*iter += 2; // пропус 'bx'
-		} else if (!strncmp (buf_code->(buf + *iter), "cx", 2)) {
+		} else if (!strncmp (&(buf_code->buf[*iter]), "cx", 2)) {
 			bin->code[bin->size++] = POP_REG;
 			bin->code[bin->size++] = CX;
 			*iter += 2; // пропус 'cx'
-		} else if (!strncmp (buf_code->(buf + *iter), "dx", 2)) {
+		} else if (!strncmp (&(buf_code->buf[*iter]), "dx", 2)) {
 			bin->code[bin->size++] = POP_REG;
 			bin->code[bin->size++] = DX;
 			*iter += 2; // пропус 'dx'
@@ -376,13 +379,13 @@ void ProcessingComPop (const buf_t *buf_code,
 		} else {
 			fprintf (stderr, "Error: Invalid argument to pop!");
 		}
-	} else if (!strncmp (buf_code->(buf + *iter), "Ram[", 4)) {
+	} else if (!strncmp (&(buf_code->buf[*iter]), "Ram[", 4)) {
 		iter += 4; // пропус "Ram["
 		
 		for (; isspace (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить пробельных символов
 		if (isdigit (buf_code->buf[*iter])) {
 			bin->code[bin->size++] = POP_RAM;
-			bin->code[bin->size++] = DigitFromString(buf_code->buf[*iter]);
+			bin->code[bin->size++] = DigitFromString(&(buf_code->buf[*iter]));
 			for (; isdigit (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить пробельных символов
 		} else {
 			fprintf (stderr, "Error: Invalid argument to pop!");

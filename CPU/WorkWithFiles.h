@@ -1,6 +1,8 @@
 #ifndef WORKWITHFILES_H
 #define WORKWITHFILES_H
 
+#include "assembler.h"
+
 /* название входного и выходного файлов объявляются в вызываемом файле
 //! название файла хранящего произведение
 #define FILE_IN "EugeneOnegin.txt"
@@ -24,6 +26,8 @@
 #define WRITING_BINARY "wb"
 
 //----------------------------------------------------------------
+
+//! для хранения строки и ее длины
 struct line {
 	char *str;
 	int len;
