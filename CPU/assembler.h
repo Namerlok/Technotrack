@@ -23,10 +23,13 @@
 
 //----------------------------------------------------------------
 
+typedef long int elem_bin;
+
 //! для хранения бинарного кода и его длины
 struct code_s {
-	int *code;
+	elem_bin *data;
 	long int size;
+	long int max_size;
 };
 typedef struct code_s code_t;
 
@@ -36,7 +39,6 @@ struct command_s {
 	long int hash;	
 };
 typedef struct command_s command_t;
-
 
 //! для хранения названия метки и ее позиции в коде
 struct mark_s {
@@ -49,6 +51,7 @@ typedef struct mark_s mark_t;
 struct marks_s {
 	mark_t *mark;
 	long int size;
+	long int max_size;
 };
 typedef struct marks_s marks_t;
 
@@ -202,6 +205,18 @@ void ProcessingComPop (const buf_t *buf_code,
  * @return полученное число
  */
 int DigitFromString (const char *string);
+
+int ResizeBinCode (code_t *code, 
+				   int new_size);
+
+int ResizeMarks (marks_t *code, 
+				 int new_size);
+
+int AddItemBinCode (code_t *code, 
+					elem_bin value);
+
+int AddMark (marks_t *marks, 
+			 const mark_t *value);
 
 /*!
  * @brief Прощальные слова

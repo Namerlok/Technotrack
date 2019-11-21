@@ -11,7 +11,7 @@
 #define FILE_OUT "Result.txt"
 */
 //! режим открытия файла
-#define CREATES "w"
+#define WRITING "w"
 
 //! режим открытия файла
 #define APPEND "a"

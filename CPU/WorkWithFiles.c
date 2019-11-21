@@ -91,7 +91,7 @@ void WriteFile (code_t *out_code,
 		perror ("Открытие выходного файла\n");
 	}
 	
-	if (out_code->size != fwrite (out_code->code, sizeof (out_code->code[0]), out_code->size, out)) {
+	if (out_code->size != fwrite (out_code->data, sizeof (out_code->data[0]), out_code->size, out)) {
 		fprintf (stderr, "The number of recording objects is different from the specified!!!\n");
 	}
 	

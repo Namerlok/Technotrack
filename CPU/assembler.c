@@ -21,17 +21,20 @@ int main () {
 	Epigraph ();	
  
 	buf_t buf_file = {NULL, 0};
-	buf_file.size = ReadFileToBuf (&(buf_file.buf), FILE_IN, READING_BINARY);
+	buf_file.size = ReadFileToBuf (&(buf_file.buf), FILE_IN, READING);
 	
-	code_t bin = {calloc (START_SIZE_CODE_BIN, sizeof (int)), 0};
+	code_t bin = {calloc (START_SIZE_CODE_BIN, sizeof (elem_bin)), 0, START_SIZE_CODE_BIN};
 	
 	if (Assembler (&buf_file, &bin))
-		fprintf (stderr, "Сode assembly error!!!");
+		fprintf (stderr, "Сode assembly error!!!\n");
+	
+	for (int i = 0; i < bin.size; i++)
+		printf ("%li ", bin.data[i]);
 		
-	WriteFile (&bin, FILE_OUT, WRITING_BINARY);
+	WriteFile (&bin, FILE_OUT, WRITING);
 	
 	free (buf_file.buf);	buf_file.buf = NULL;
-	free (bin.code);		bin.code = NULL;
+	free (bin.data);		bin.data = NULL;
 	
 	Postscript ();
 
@@ -52,14 +55,14 @@ void HashCommands (command_t *commands,
 	assert (commands != NULL);
 	
 	for (int i = 0; i < size; i++)
-		(commands[i]).hash = HashWord (commands[i].com);
+		commands[i].hash = HashWord (commands[i].com);
 }
 
 long int HashWord (const char *string) {
 	assert (string != NULL);
 	
 	long int hash = 0;
-	for (int i = 0; !isspace(string[i]); i++)
+	for (int i = 0; !isspace (string[i]) && i < strlen (string); i++)
 			hash += string[i] * (i + 1);
 	
 	return hash;
@@ -91,12 +94,11 @@ int Assembler (const buf_t *buf_code,
 							{"call", 0},
 							{";", 0}
 						   };
+
 	HashCommands (commands, sizeof (commands) / sizeof (command_t));
 
-	marks_t marks = {calloc (START_SIZE_MARK, sizeof(mark_t)), 0};
-	
-	bin->size = 0;
-	
+	marks_t marks = {calloc (START_SIZE_MARK, sizeof(mark_t)), 0, START_SIZE_MARK};
+
 	Processing (buf_code, &marks, bin, commands, (int)sizeof(commands) / (int)sizeof(command_t));
 	Processing (buf_code, &marks, bin, commands, (int)sizeof(commands) / (int)sizeof(command_t));
 	
@@ -115,82 +117,68 @@ void Processing (const buf_t *buf_code,
 	assert (bin != NULL);
 	assert (commands != NULL);
 	
-	for (int i = 0; i < buf_code->size; i++) {
-		for (; isspace (buf_code->buf[i]) && i <= buf_code->size; i++) {}
+	bin->size = 0;
+	int i = 0;
+	while (i < buf_code->size) {
+		for (; isspace (buf_code->buf[i]) && i < buf_code->size; i++) {}
+		if (i >= buf_code->size)
+			break;
 		long int hash = HashWord (&(buf_code->buf[i]));
+		printf ("Hash = %li\n", hash);
 		if (hash == commands[0].hash) { //"add"
-			bin->code[bin->size++] = ADD;
+			AddItemBinCode (bin, ADD);
 			for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
-			break;
 		} else if (hash == commands[1].hash) { //"sub"
-			bin->code[bin->size++] = SUB;
+			AddItemBinCode (bin, SUB);
 			for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
-			break;
 		} else if (hash == commands[2].hash) { //"mul"
-			bin->code[bin->size++] = MUL;
+			AddItemBinCode (bin, MUL);
 			for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
-			break;
 		} else if (hash == commands[3].hash) { //"div"
-			bin->code[bin->size++] = DIV;
+			AddItemBinCode (bin, DIV);
 			for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
-			break;
 		} else if (hash == commands[4].hash) { //"sqrt"
-			bin->code[bin->size++] = SQRT;
+			AddItemBinCode (bin, SQRT);
 			for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
-			break;
 		} else if (hash == commands[5].hash) { //"sin"
-			bin->code[bin->size++] = SIN;
+			AddItemBinCode (bin, SIN);
 			for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
-			break;
 		} else if (hash == commands[6].hash) { //"cos"
-			bin->code[bin->size++] = COS;
+			AddItemBinCode (bin, COS);
 			for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
-			break;
 		} else if (hash == commands[7].hash) { //"end"
-			bin->code[bin->size++] = END;
+			AddItemBinCode (bin, END);
 			for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
-			break;
 		} else if (hash == commands[8].hash) { //"push"
 			ProcessingComPush (buf_code, &i, bin);
-			break;
 		} else if (hash == commands[9].hash) { //"pop"
 			ProcessingComPop (buf_code, &i, bin);
-			break;
 		} else if (hash == commands[10].hash) { //"jmp"
 			Jump (buf_code, &i, marks, bin, JMP);
-			break;
 		} else if (hash == commands[11].hash) { //"ja"
 			Jump (buf_code, &i, marks, bin, JA);
-			break;
 		} else if (hash == commands[12].hash) { //"jae"
 			Jump (buf_code, &i, marks, bin, JAE);
-			break;
 		} else if (hash == commands[13].hash) { //"jb"
 			Jump (buf_code, &i, marks, bin, JB);
-			break;
 		} else if (hash == commands[14].hash) { //"jbe"
 			Jump (buf_code, &i, marks, bin, JBE);
-			break;
 		} else if (hash == commands[15].hash) { //"je"
 			Jump (buf_code, &i, marks, bin, JE);
-			break;
 		} else if (hash == commands[16].hash) { //"jne"
 			Jump (buf_code, &i, marks, bin, JNE);
-			break;
 		} else if (hash == commands[17].hash) { //"<-"
 			JumpMark (buf_code, &i, marks, bin);
-			break;
 		} else if (hash == commands[18].hash) { //"call"
 ////////////////////////////////////////////////////////
-			break;
-		} else if (hash == commands[19].hash) { //";"
-			break;
+		} else if (buf_code->buf[i] == ';') { //";"
+			for (; buf_code->buf[i] != '\n' && buf_code->buf[i] != '\0' && i < buf_code->size; i++) {}
 		} else {
 			char *word = NULL;
-			fprintf (stderr, "ERROR: invalid command: \"%s\"", 
+			fprintf (stderr, "ERROR: invalid command: \"%s\"\n", 
 					 word = WordFromString(&(buf_code->buf[i])));
 			free (word); word =NULL;
-			break;
+			return;
 		}
 	}
 }
@@ -207,13 +195,13 @@ void Jump (const buf_t *buf_code,
 
 	for (; isalpha (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++) {} // пропустить название команды
 	
-	bin->code[bin->size++] = encod;
+	AddItemBinCode (bin, encod);
 	
 	for (; isspace (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить пробельных символов
 	
-	bin->code[bin->size++] = FindMark(marks, HashWord (&(buf_code->buf[*iter])));
+	AddItemBinCode (bin, FindMark(marks, HashWord (&(buf_code->buf[*iter]))));
 	
-	for (; isalpha (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить название метки
+	for (; !isspace (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить название метки
 }
 
 int FindMark (const marks_t *marks,
@@ -245,18 +233,22 @@ void JumpMark (const buf_t *buf_code,
 	
 	long int hash_name = HashWord (&(buf_code->buf[*iter]));
 	
+	printf ("Hash mark %li\n", hash_name);
+	
+	/*
 	if (!FindMark(marks, hash_name)) {
 		char *word = NULL;
-		fprintf (stderr, "ERROR: This marker (%s) is already in use.", 
+		fprintf (stderr, "ERROR: This marker (%s) is already in use.\n", 
 				 word = WordFromString(&(buf_code->buf[*iter])));
 		free (word); word = NULL;
 	}
+	*/
 	
-	for (; isalpha (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++) {} // пропустить название метки
+	for (; !isspace (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++) {} // пропустить название метки
 	
-	marks->mark[marks->size].name = hash_name;
-	marks->mark[marks->size].pos = bin->size;
-	marks->size++;
+	mark_t mark = {hash_name, bin->size};
+	
+	AddMark (marks, &mark);
 }
 
 char *WordFromString (const char *string) {
@@ -291,52 +283,52 @@ void ProcessingComPush (const buf_t *buf_code,
 		(*iter)++; // пропус '['
 		for (; isspace (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить пробельных символов
 		if (isdigit (buf_code->buf[*iter])) {
-			bin->code[bin->size++] = PUSH_STK;
-			bin->code[bin->size++] = DigitFromString(&(buf_code->buf[*iter]));
+			AddItemBinCode (bin, PUSH_STK);
+			AddItemBinCode (bin, DigitFromString(&(buf_code->buf[*iter])));
 			for (; isdigit (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить пробельных символов
 		} else if (!strncmp (&(buf_code->buf[*iter]), "ax", 2)) {
-			bin->code[bin->size++] = PUSH_REG;
-			bin->code[bin->size++] = AX;
+			AddItemBinCode (bin, PUSH_REG);
+			AddItemBinCode (bin, AX);
 			*iter += 2; // пропус 'ax'
 		} else if (!strncmp (&(buf_code->buf[*iter]), "bx", 2)) {
-			bin->code[bin->size++] = PUSH_REG;
-			bin->code[bin->size++] = BX;
+			AddItemBinCode (bin, PUSH_REG);
+			AddItemBinCode (bin, BX);
 			*iter += 2; // пропус 'bx'
 		} else if (!strncmp (&(buf_code->buf[*iter]), "cx", 2)) {
-			bin->code[bin->size++] = PUSH_REG;
-			bin->code[bin->size++] = CX;
+			AddItemBinCode (bin, PUSH_REG);
+			AddItemBinCode (bin, CX);
 			*iter += 2; // пропус 'cx'
 		} else if (!strncmp (&(buf_code->buf[*iter]), "dx", 2)) {
-			bin->code[bin->size++] = PUSH_REG;
-			bin->code[bin->size++] = DX;
+			AddItemBinCode (bin, PUSH_REG);
+			AddItemBinCode (bin, DX);
 			*iter += 2; // пропус 'dx'
 		} else {
-			fprintf (stderr, "Error: Invalid argument to push!");
+			fprintf (stderr, "Error: Invalid argument to push!\n");
 		}
 		for (; isspace (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить пробельных символов
 		if (buf_code->buf[*iter] == ']') {
 			(*iter)++; // пропус ']'
 		} else {
-			fprintf (stderr, "Error: Invalid argument to push!");
+			fprintf (stderr, "Error: Invalid argument to push!\n");
 		}
 	} else if (!strncmp (&(buf_code->buf[*iter]), "Ram[", 4)) {
 		*iter += 4; // пропус "Ram["
 		for (; isspace (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить пробельных символов
 		if (isdigit (buf_code->buf[*iter])) {
-			bin->code[bin->size++] = PUSH_RAM;
-			bin->code[bin->size++] = DigitFromString(&(buf_code->buf[*iter]));
+			AddItemBinCode (bin, PUSH_RAM);
+			AddItemBinCode (bin, DigitFromString(&(buf_code->buf[*iter])));
 			for (; isdigit (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить пробельных символов
 		} else {
-			fprintf (stderr, "Error: Invalid argument to push!");
+			fprintf (stderr, "Error: Invalid argument to push!\n");
 		}
 		for (; isspace (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить пробельных символов
 		if (buf_code->buf[*iter] == ']') {
 			(*iter)++; // пропус ']'
 		} else {
-			fprintf (stderr, "Error: Invalid argument to push!");
+			fprintf (stderr, "Error: Invalid argument to push!\n");
 		}
 	} else {
-		fprintf (stderr, "Error: Invalid argument to push!");
+		fprintf (stderr, "Error: Invalid argument to push!\n");
 	}
 }
 
@@ -347,57 +339,57 @@ void ProcessingComPop (const buf_t *buf_code,
 	assert (iter != NULL);
 	assert (bin != NULL);
 	
-	*iter += 4; // пропустить название команды "pop"
-	
+	*iter += 3; // пропустить название команды "pop"
+	for (; isspace (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить пробельных символов
 	if (buf_code->buf[*iter] == '[') {
 		(*iter)++; // пропус '['
 		
 		for (; isspace (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить пробельных символов
 		
 		if (!strncmp (&(buf_code->buf[*iter]), "ax", 2)) {
-			bin->code[bin->size++] = POP_REG;
-			bin->code[bin->size++] = AX;
+			AddItemBinCode (bin, POP_REG);
+			AddItemBinCode (bin, AX);
 			*iter += 2; // пропус 'ax'
 		} else if (!strncmp (&(buf_code->buf[*iter]), "bx", 2)) {
-			bin->code[bin->size++] = POP_REG;
-			bin->code[bin->size++] = BX;
+			AddItemBinCode (bin, POP_REG);
+			AddItemBinCode (bin, BX);
 			*iter += 2; // пропус 'bx'
 		} else if (!strncmp (&(buf_code->buf[*iter]), "cx", 2)) {
-			bin->code[bin->size++] = POP_REG;
-			bin->code[bin->size++] = CX;
+			AddItemBinCode (bin, POP_REG);
+			AddItemBinCode (bin, CX);
 			*iter += 2; // пропус 'cx'
 		} else if (!strncmp (&(buf_code->buf[*iter]), "dx", 2)) {
-			bin->code[bin->size++] = POP_REG;
-			bin->code[bin->size++] = DX;
+			AddItemBinCode (bin, POP_REG);
+			AddItemBinCode (bin, DX);
 			*iter += 2; // пропус 'dx'
 		} else {
-			fprintf (stderr, "Error: Invalid argument to pop!");
+			fprintf (stderr, "Error: Invalid argument to pop!\n");
 		}
 		for (; isspace (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить пробельных символов
 		if (buf_code->buf[*iter] == ']') {
 			(*iter)++; // пропус ']'
 		} else {
-			fprintf (stderr, "Error: Invalid argument to pop!");
+			fprintf (stderr, "Error: Invalid argument to pop!\n");
 		}
 	} else if (!strncmp (&(buf_code->buf[*iter]), "Ram[", 4)) {
-		iter += 4; // пропус "Ram["
+		*iter += 4; // пропус "Ram["
 		
 		for (; isspace (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить пробельных символов
 		if (isdigit (buf_code->buf[*iter])) {
-			bin->code[bin->size++] = POP_RAM;
-			bin->code[bin->size++] = DigitFromString(&(buf_code->buf[*iter]));
+			AddItemBinCode (bin, POP_RAM);
+			AddItemBinCode (bin, DigitFromString(&(buf_code->buf[*iter])));
 			for (; isdigit (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить пробельных символов
 		} else {
-			fprintf (stderr, "Error: Invalid argument to pop!");
+			fprintf (stderr, "Error: Invalid argument to pop!\n");
 		}
 		for (; isspace (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить пробельных символов
 		if (buf_code->buf[*iter] == ']') {
 			(*iter)++; // пропус ']'
 		} else {
-			fprintf (stderr, "Error: Invalid argument to pop!");
+			fprintf (stderr, "Error: Invalid argument to pop!\n");
 		}
 	} else {
-		bin->code[bin->size++] = POP_STK;
+		AddItemBinCode (bin, POP_STK);
 	}
 	
 }
@@ -412,6 +404,64 @@ int DigitFromString (const char *string) {
 		num = num * 10 + string[i] - '0';
 	}
 	return num;
+}
+
+int ResizeBinCode (code_t *code, 
+				   int new_size) {
+	assert (code != NULL);
+	assert (new_size > 0);
+
+	elem_bin *p = code->data;
+	code->max_size = new_size;
+	code->data = realloc (code->data, code->max_size * sizeof(elem_bin));
+	if (code->data == NULL) {
+		code->data = p;
+		return 1;
+	}
+   
+    return 0;
+}
+
+int ResizeMarks (marks_t *code, 
+				 int new_size) {
+	assert (code != NULL);
+	assert (new_size > 0);
+
+	mark_t *p = code->mark;
+	code->max_size = new_size;
+	code->mark = realloc (code->mark, code->max_size * sizeof(mark_t));
+	if (code->mark == NULL) {
+		code->mark = p;
+		return 1;
+	}
+ 
+    return 0;
+}
+
+int AddItemBinCode (code_t *bin, 
+					elem_bin value) {
+	assert (bin != NULL);
+	int errcode = 0;
+	
+	if (bin->size >= bin->max_size)
+		errcode = ResizeBinCode (bin, bin->max_size + START_SIZE_CODE_BIN);
+		
+	bin->data[bin->size++] = value;
+	
+	return errcode;
+}
+
+int AddMark (marks_t *marks, 
+			 const mark_t *value) {
+	assert (marks != NULL);
+	int errcode = 0;
+	
+	if (marks->size >= marks->max_size)
+		errcode = ResizeMarks (marks, marks->max_size + START_SIZE_MARK);
+		
+	marks->mark[marks->size++] = *value;
+	
+	return errcode;
 }
 
 void Postscript () {

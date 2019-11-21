@@ -1,1 +1,16 @@
-
+add
+<- home
+mul
+<- !!
+sub
+jmp home ;asasas
+div
+jmp !!
+; aaa sss ddd
+push [22]
+push [ax]
+push Ram[0]
+pop
+pop [bx]
+pop Ram[0]
+end
