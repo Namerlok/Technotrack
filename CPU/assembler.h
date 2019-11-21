@@ -206,15 +206,47 @@ void ProcessingComPop (const buf_t *buf_code,
  */
 int DigitFromString (const char *string);
 
-int ResizeBinCode (code_t *code, 
+/*!
+ * @brief изменение размера массива бинарного кода
+ *
+ * @param bin - ассемблированный код
+ * @param new_size - новый размер
+ *
+ * @return код ошибки
+ */
+int ResizeBinCode (code_t *bin, 
 				   int new_size);
 
+/*!
+ * @brief изменение размера массива меток
+ *
+ * @param code - метки
+ * @param new_size - новый размер
+ *
+ * @return код ошибки
+ */
 int ResizeMarks (marks_t *code, 
 				 int new_size);
 
-int AddItemBinCode (code_t *code, 
+/*!
+ * @brief добавление нового элемента в бинарный код
+ *
+ * @param bin - ассемблированный код
+ * @param value - новое значение
+ *
+ * @return код ошибки
+ */
+int AddItemBinCode (code_t *bin, 
 					elem_bin value);
 
+/*!
+ * @brief добавление новой метки
+ *
+ * @param code - метки
+ * @param value - новое значение
+ *
+ * @return код ошибки
+ */
 int AddMark (marks_t *marks, 
 			 const mark_t *value);
 

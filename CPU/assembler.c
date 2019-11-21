@@ -406,16 +406,16 @@ int DigitFromString (const char *string) {
 	return num;
 }
 
-int ResizeBinCode (code_t *code, 
+int ResizeBinCode (code_t *bin, 
 				   int new_size) {
-	assert (code != NULL);
+	assert (bin != NULL);
 	assert (new_size > 0);
 
-	elem_bin *p = code->data;
-	code->max_size = new_size;
-	code->data = realloc (code->data, code->max_size * sizeof(elem_bin));
-	if (code->data == NULL) {
-		code->data = p;
+	elem_bin *p = bin->data;
+	bin->max_size = new_size;
+	bin->data = realloc (bin->data, bin->max_size * sizeof(elem_bin));
+	if (bin->data == NULL) {
+		bin->data = p;
 		return 1;
 	}
    
