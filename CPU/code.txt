@@ -1,16 +1,22 @@
-add
-<- home
-mul
-<- !!
-sub
-jmp home ;asasas
-div
-jmp !!
+;add
+;<- home
+;mul
+;<- !!
+;sub
+;jmp home ;asasas
+;div
+;jmp !!
 ; aaa sss ddd
-push [22]
-push [ax]
-push Ram[0]
+;push [22]
+;push [ax]
+;push Ram[0]
+call ARA
 pop
-pop [bx]
-pop Ram[0]
+;pop [bx]
+;pop Ram[0]
 end
+
+function ARA
+	pop [ax]
+	push [ax]
+	return

@@ -30,6 +30,7 @@ int main () {
 	
 	for (int i = 0; i < bin.size; i++)
 		printf ("%li ", bin.data[i]);
+	printf ("\n");
 		
 	WriteFile (&bin, FILE_OUT, WRITING);
 	
@@ -92,7 +93,9 @@ int Assembler (const buf_t *buf_code,
 							{"jne", 0},
 							{"<-", 0},
 							{"call", 0},
-							{";", 0}
+							{";", 0},
+							{"function", 0},
+							{"return", 0}
 						   };
 
 	HashCommands (commands, sizeof (commands) / sizeof (command_t));
@@ -124,55 +127,71 @@ void Processing (const buf_t *buf_code,
 		if (i >= buf_code->size)
 			break;
 		long int hash = HashWord (&(buf_code->buf[i]));
-		printf ("Hash = %li\n", hash);
 		if (hash == commands[0].hash) { //"add"
 			AddItemBinCode (bin, ADD);
-			for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
+			i += strlen (commands[0].com); // пропустить название команды
 		} else if (hash == commands[1].hash) { //"sub"
 			AddItemBinCode (bin, SUB);
-			for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
+			i += strlen (commands[1].com); // пропустить название команды
 		} else if (hash == commands[2].hash) { //"mul"
 			AddItemBinCode (bin, MUL);
-			for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
+			i += strlen (commands[2].com); // пропустить название команды
 		} else if (hash == commands[3].hash) { //"div"
 			AddItemBinCode (bin, DIV);
-			for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
+			i += strlen (commands[3].com); // пропустить название команды
 		} else if (hash == commands[4].hash) { //"sqrt"
 			AddItemBinCode (bin, SQRT);
-			for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
+			i += strlen (commands[4].com); // пропустить название команды
 		} else if (hash == commands[5].hash) { //"sin"
 			AddItemBinCode (bin, SIN);
-			for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
+			i += strlen (commands[5].com); // пропустить название команды
 		} else if (hash == commands[6].hash) { //"cos"
 			AddItemBinCode (bin, COS);
-			for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
+			i += strlen (commands[6].com); // пропустить название команды
 		} else if (hash == commands[7].hash) { //"end"
 			AddItemBinCode (bin, END);
-			for (; isalpha (buf_code->buf[i]) && i < buf_code->size; i++) {} // пропустить название команды
+			i += strlen (commands[7].com); // пропустить название команды
 		} else if (hash == commands[8].hash) { //"push"
+			i += strlen (commands[8].com); // пропустить название команды
 			ProcessingComPush (buf_code, &i, bin);
 		} else if (hash == commands[9].hash) { //"pop"
+			i += strlen (commands[9].com); // пропустить название команды
 			ProcessingComPop (buf_code, &i, bin);
 		} else if (hash == commands[10].hash) { //"jmp"
+			i += strlen (commands[10].com); // пропустить название команды
 			Jump (buf_code, &i, marks, bin, JMP);
 		} else if (hash == commands[11].hash) { //"ja"
+			i += strlen (commands[11].com); // пропустить название команды
 			Jump (buf_code, &i, marks, bin, JA);
 		} else if (hash == commands[12].hash) { //"jae"
+			i += strlen (commands[12].com); // пропустить название команды
 			Jump (buf_code, &i, marks, bin, JAE);
 		} else if (hash == commands[13].hash) { //"jb"
+			i += strlen (commands[13].com); // пропустить название команды
 			Jump (buf_code, &i, marks, bin, JB);
 		} else if (hash == commands[14].hash) { //"jbe"
+			i += strlen (commands[14].com); // пропустить название команды
 			Jump (buf_code, &i, marks, bin, JBE);
 		} else if (hash == commands[15].hash) { //"je"
+			i += strlen (commands[15].com); // пропустить название команды
 			Jump (buf_code, &i, marks, bin, JE);
 		} else if (hash == commands[16].hash) { //"jne"
+			i += strlen (commands[16].com); // пропустить название команды
 			Jump (buf_code, &i, marks, bin, JNE);
 		} else if (hash == commands[17].hash) { //"<-"
+			i += strlen (commands[17].com); // пропуск символа метки "<-"
 			JumpMark (buf_code, &i, marks, bin);
 		} else if (hash == commands[18].hash) { //"call"
-////////////////////////////////////////////////////////
+			i += strlen (commands[18].com); // пропуск символа метки "call"
+			Jump (buf_code, &i, marks, bin, CALL);
 		} else if (buf_code->buf[i] == ';') { //";"
 			for (; buf_code->buf[i] != '\n' && buf_code->buf[i] != '\0' && i < buf_code->size; i++) {}
+		} else if (hash == commands[20].hash) { //"function"
+			i += strlen (commands[20].com); // пропустить название команды
+			JumpMark (buf_code, &i, marks, bin);
+		} else if (hash == commands[21].hash) { //"ret"
+			AddItemBinCode (bin, RET);
+			i += strlen (commands[21].com); // пропустить название команды
 		} else {
 			char *word = NULL;
 			fprintf (stderr, "ERROR: invalid command: \"%s\"\n", 
@@ -192,8 +211,6 @@ void Jump (const buf_t *buf_code,
 	assert (iter != NULL);
 	assert (marks != NULL);
 	assert (bin != NULL);
-
-	for (; isalpha (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++) {} // пропустить название команды
 	
 	AddItemBinCode (bin, encod);
 	
@@ -228,12 +245,9 @@ void JumpMark (const buf_t *buf_code,
 	assert (marks != NULL);
 	assert (bin != NULL);
 	
-	*iter += 2; // пропуск символа метки "<-"
 	for (; isspace (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить пробельных символов
 	
 	long int hash_name = HashWord (&(buf_code->buf[*iter]));
-	
-	printf ("Hash mark %li\n", hash_name);
 	
 	/*
 	if (!FindMark(marks, hash_name)) {
@@ -274,8 +288,6 @@ void ProcessingComPush (const buf_t *buf_code,
 	assert (buf_code != NULL);
 	assert (iter!= NULL);
 	assert (bin != NULL);
-	
-	*iter += 4; // пропустить название команды "push"
 	
 	for (; isspace (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить пробельных символов
 	
@@ -338,8 +350,7 @@ void ProcessingComPop (const buf_t *buf_code,
 	assert (buf_code != NULL);
 	assert (iter != NULL);
 	assert (bin != NULL);
-	
-	*iter += 3; // пропустить название команды "pop"
+
 	for (; isspace (buf_code->buf[*iter]) && *iter < buf_code->size; (*iter)++)  {} // пропустить пробельных символов
 	if (buf_code->buf[*iter] == '[') {
 		(*iter)++; // пропус '['
