@@ -251,6 +251,17 @@ int AddMark (marks_t *marks,
 			 const mark_t *value);
 
 /*!
+ * @brief пропуск пробельных символов 
+ *
+ * @param buf_code - код для ассемблирования
+ * @param iter - указатель на переменную с позицией в буфере
+ *
+ * @return void
+ */
+void SkipSpace (const buf_t *buf_code,
+				int *iter);
+
+/*!
  * @brief Прощальные слова
  *
  * @return void
