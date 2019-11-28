@@ -1,9 +1,10 @@
 #ifndef ENCODINGS_H
 #define ENCODINGS_H
 
+
 //! Кодировка команд
-enum encodings {
-	PUSH_STK	=  4812, ///< хеширование название "pushstack"
+enum encodings_v01 {
+/*	PUSH_STK	=  4812, ///< хеширование название "pushstack"
 	PUSH_REG	=  8518, ///< хеширование название "pushregister"
 	PUSH_RAM	=  2446, ///< хеширование название "pushRAM"
 	POP_STK		=  3841, ///< хеширование название "popstack"
@@ -26,11 +27,22 @@ enum encodings {
 	COS			=  2242, ///< хеширование название "cosine"
 	END			=  5901, ///< хеширование название "endprogram"
 	CALL		=  8458, ///< хеширование название "callfunction"
-	RET			=  2362, ///< хеширование название "return"
-	AX			=  6008, ///< хеширование название "registerax"
-	BX			=  6017, ///< хеширование название "registerbx"
-	CX			=  6026, ///< хеширование название "registercx"
-	DX			=  6035  ///< хеширование название "registerdx"
+	RET			=  2362, ///< хеширование название "return"*/
+	AX			=  1, 
+	BX			=  2, 
+	CX			=  3, 
+	DX			=  4  
 };
+
+#define DEF_CMD(name, code, argc, instr) \
+	CMD_##name = (code),
+
+//! Кодировка команд
+enum encodings_v02 {
+	#include "commands.h"
+	CMD_MAX
+};
+
+#undef DEF_CMD
 
 #endif

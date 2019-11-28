@@ -51,379 +51,254 @@ void Epigraph () {
 			"\n");
 }
 
-void HashCommands (command_t *commands, 
-				   const long int size) {
-	assert (commands != NULL);
-	
-	for (int i = 0; i < size; i++)
-		commands[i].hash = HashWord (commands[i].com);
-}
-
-long int HashWord (const char *string) {
-	assert (string != NULL);
-	
-	long int hash = 0;
-	for (int i = 0; !isspace (string[i]) && i < strlen (string); i++)
-			hash += string[i] * (i + 1);
-	
-	return hash;
-}
-
-int Assembler (const buf_t *buf_code,
+int Assembler (const buf_t *buf,
 			   code_t *bin) {
-	assert (buf_code != NULL);
-	assert (bin != NULL);
-	
-	command_t commands[] = {{"add", 0},
-							{"sub", 0},
-							{"mul", 0},
-							{"div", 0},
-							{"sqrt", 0},
-							{"sin", 0},
-							{"cos", 0},
-							{"end", 0},
-							{"push", 0},
-							{"pop", 0},
-							{"jmp", 0},
-							{"ja", 0},
-							{"jae", 0},
-							{"jb", 0},
-							{"jbe", 0},
-							{"je", 0},
-							{"jne", 0},
-							{"<-", 0},
-							{"call", 0},
-							{";", 0},
-							{"function", 0},
-							{"return", 0}
-						   };
-
-	HashCommands (commands, sizeof (commands) / sizeof (command_t));
+	assert (buf);
+	assert (bin);
 
 	marks_t marks = {calloc (START_SIZE_MARK, sizeof(mark_t)), 0, START_SIZE_MARK};
 
-	Processing (buf_code, &marks, bin, commands, (int)sizeof(commands) / (int)sizeof(command_t));
-	Processing (buf_code, &marks, bin, commands, (int)sizeof(commands) / (int)sizeof(command_t));
+	PreProcessing (buf, &marks, bin);
 	
-	free (marks.mark);
+	for (int i = 0; i < marks.size; i++)
+		printf ("Function assembler: marks.data[i].name = %s\tpos = %li\n", marks.data[i].name, marks.data[i].pos);
+	printf ("\n");
+	
+	Processing (buf, &marks, bin);
+	
+	FreeMark (&marks);
+	
+	printf ("Function Assembler is finish\n"); 
 	
 	return 0;
 }
 
-void Processing (const buf_t *buf_code,
+void PreProcessing (const buf_t *buf,
 				 marks_t *marks,
-				 code_t *bin,
-				 const command_t *commands,
-				 const int n_commands) {
-	assert (buf_code != NULL);
-	assert (marks != NULL);
-	assert (bin != NULL);
-	assert (commands != NULL);
+				 code_t *bin) {
+	assert (buf);
+	assert (marks);
+	assert (bin);
 	
 	bin->size = 0;
 	int i = 0;
-	while (i < buf_code->size) {
-		for (; isspace (buf_code->buf[i]) && i < buf_code->size; i++) {}
-		if (i >= buf_code->size)
-			break;
-		long int hash = HashWord (&(buf_code->buf[i]));
-		if (hash == commands[0].hash) { //"add"
-			AddItemBinCode (bin, ADD);
-			i += strlen (commands[0].com); // пропустить название команды
-		} else if (hash == commands[1].hash) { //"sub"
-			AddItemBinCode (bin, SUB);
-			i += strlen (commands[1].com); // пропустить название команды
-		} else if (hash == commands[2].hash) { //"mul"
-			AddItemBinCode (bin, MUL);
-			i += strlen (commands[2].com); // пропустить название команды
-		} else if (hash == commands[3].hash) { //"div"
-			AddItemBinCode (bin, DIV);
-			i += strlen (commands[3].com); // пропустить название команды
-		} else if (hash == commands[4].hash) { //"sqrt"
-			AddItemBinCode (bin, SQRT);
-			i += strlen (commands[4].com); // пропустить название команды
-		} else if (hash == commands[5].hash) { //"sin"
-			AddItemBinCode (bin, SIN);
-			i += strlen (commands[5].com); // пропустить название команды
-		} else if (hash == commands[6].hash) { //"cos"
-			AddItemBinCode (bin, COS);
-			i += strlen (commands[6].com); // пропустить название команды
-		} else if (hash == commands[7].hash) { //"end"
-			AddItemBinCode (bin, END);
-			i += strlen (commands[7].com); // пропустить название команды
-		} else if (hash == commands[8].hash) { //"push"
-			i += strlen (commands[8].com); // пропустить название команды
-			ProcessingComPush (buf_code, &i, bin);
-		} else if (hash == commands[9].hash) { //"pop"
-			i += strlen (commands[9].com); // пропустить название команды
-			ProcessingComPop (buf_code, &i, bin);
-		} else if (hash == commands[10].hash) { //"jmp"
-			i += strlen (commands[10].com); // пропустить название команды
-			Jump (buf_code, &i, marks, bin, JMP);
-		} else if (hash == commands[11].hash) { //"ja"
-			i += strlen (commands[11].com); // пропустить название команды
-			Jump (buf_code, &i, marks, bin, JA);
-		} else if (hash == commands[12].hash) { //"jae"
-			i += strlen (commands[12].com); // пропустить название команды
-			Jump (buf_code, &i, marks, bin, JAE);
-		} else if (hash == commands[13].hash) { //"jb"
-			i += strlen (commands[13].com); // пропустить название команды
-			Jump (buf_code, &i, marks, bin, JB);
-		} else if (hash == commands[14].hash) { //"jbe"
-			i += strlen (commands[14].com); // пропустить название команды
-			Jump (buf_code, &i, marks, bin, JBE);
-		} else if (hash == commands[15].hash) { //"je"
-			i += strlen (commands[15].com); // пропустить название команды
-			Jump (buf_code, &i, marks, bin, JE);
-		} else if (hash == commands[16].hash) { //"jne"
-			i += strlen (commands[16].com); // пропустить название команды
-			Jump (buf_code, &i, marks, bin, JNE);
-		} else if (hash == commands[17].hash) { //"<-"
-			i += strlen (commands[17].com); // пропуск символа метки "<-"
-			JumpMark (buf_code, &i, marks, bin);
-		} else if (hash == commands[18].hash) { //"call"
-			i += strlen (commands[18].com); // пропуск символа метки "call"
-			Jump (buf_code, &i, marks, bin, CALL);
-		} else if (buf_code->buf[i] == ';') { //";"
-			for (; buf_code->buf[i] != '\n' && buf_code->buf[i] != '\0' && i < buf_code->size; i++) {}
-		} else if (hash == commands[20].hash) { //"function"
-			i += strlen (commands[20].com); // пропустить название команды
-			JumpMark (buf_code, &i, marks, bin);
-		} else if (hash == commands[21].hash) { //"ret"
-			AddItemBinCode (bin, RET);
-			i += strlen (commands[21].com); // пропустить название команды
-		} else {
-			char *word = NULL;
-			fprintf (stderr, "ERROR: invalid command: \"%s\"\n", 
-					 word = WordFromString(&(buf_code->buf[i])));
-			free (word); word =NULL;
+	SkipSpace (buf, &i); 
+	while (i < buf->size) {
+		int len = 0;
+		SkipSpace (buf, &i); ////////
+		#define DEF_CMD(name, encode, argc, code) \
+			if (!strncmp(buf->buf + i, #name, len = strlen (#name))) { \
+				printf ("Function PreProcessing:" #name "\n"); \
+				i += len; \
+				bin->size +=  argc + 1;\
+				SkipSpace (buf, &i); \
+				for (int j = 0; j < argc; j++ ) { \
+					SkipWord (buf, &i); \
+					SkipSpace (buf, &i); \
+				} \
+			} else
+		#include "commands.h"
+		#undef DEF_CMD
+		if (buf->buf[i] == ';') { // пропуск коментария
+			for (; buf->buf[i] != '\n' && buf->buf[i] != '\0' && i < buf->size; i++) {}
+			SkipSpace (buf, &i); ////////
+		} else if (IsMark (buf, i)) {
+			AddMark (buf, &i, marks, bin);
+			SkipSpace (buf, &i);
+		}
+	}
+}
+
+void Processing (const buf_t *buf,
+				 marks_t *marks,
+				 code_t *bin) {
+	assert (buf);
+	assert (marks);
+	assert (bin);
+	
+	bin->size = 0;
+	int i = 0;
+	SkipSpace (buf, &i); 
+	while (i < buf->size) {
+		int len = 0;
+		SkipSpace (buf, &i); ////////
+		#define DEF_CMD(name, encode, argc, code) \
+			if (!strncmp(buf->buf + i, #name, len = strlen (#name))) { \
+				printf ("Function Processing:" #name "\n"); \
+				i += len; \
+				AddItemBinCode (bin, encode); \
+				SkipSpace (buf, &i); \
+				int errcode = 0; \
+				if ((errcode = ProcArg (buf, &i, marks, bin, argc)) != 0) \
+					fprintf (stderr, "Error processing argument(s). Error №:%i\n", errcode); \
+				SkipSpace (buf, &i); \
+			} else
+		#include "commands.h"
+		#undef DEF_CMD
+		if (buf->buf[i] == ';') { // пропуск коментария
+			for (; buf->buf[i] != '\n' && buf->buf[i] != '\0' && i < buf->size; i++) {}
+			SkipSpace (buf, &i); ////////
+		} else if (IsMark (buf, i)) {
+			SkipWord (buf, &i);
+			SkipSpace (buf, &i);
+		} else {	
+			char arg[MAX_SIZE_WORD] = "\0";
+			int r_pos = 0;
+			sscanf (buf->buf + i, "%[^\n\t ]%n", arg, &r_pos);
+			fprintf (stderr, "Unknown command: %s\n", arg);
 			return;
 		}
 	}
 }
 
-void Jump (const buf_t *buf_code,
-		   int *iter,
-		   const marks_t *marks,
-		   code_t *bin,
-		   const int encod) {
-	assert (buf_code != NULL);
-	assert (iter != NULL);
-	assert (marks != NULL);
-	assert (bin != NULL);
+int ProcArg (const buf_t *buf,
+			 int *iter,
+			 const marks_t *marks,
+			 code_t *bin,
+			 const int argc) {
+				 
+	assert (buf);
+	assert (iter);
+	assert (marks);
+	assert (bin);
 	
-	AddItemBinCode (bin, encod);
+	int errcode = 0;
+	for (int i = 0; i < argc; i++) {
+		int r_pos = 0;
+		char arg[MAX_SIZE_WORD] = "\0";
+		SkipSpace (buf, iter);
+		sscanf (buf->buf + *iter, "%[^;:\n\t ]%n", arg, &r_pos);
+		printf ("\tFunction ProcArg: iter = %i\targ = %s\tr_pos = %i\n", *iter, arg, r_pos);
+		*iter += r_pos;
+		int pos_mark = -1;
+		if ((pos_mark = FindMark (marks, arg)) != -1) {
+			AddItemBinCode (bin, pos_mark);
+		} else if (IsStrDigit (arg)) {
+			printf ("\tFunction ProcArg: If (IsStrDigit (arg))\n");
+			AddItemBinCode (bin, atoi (arg));
+		} else if (!strcmp (arg, "ax")) {
+			AddItemBinCode (bin, AX);
+		} else if (!strcmp (arg, "bx")) {
+			AddItemBinCode (bin, BX);
+		} else if (!strcmp (arg, "cx")) {
+			AddItemBinCode (bin, CX);
+		} else if (!strcmp (arg, "dx")) {
+			AddItemBinCode (bin, DX);
+		} else {
+			fprintf (stderr, "Unknown argument\n");
+			errcode = 1;
+			goto error_exit;
+		}
+	}
 	
-	SkipSpace (buf_code, iter);
+	error_exit:
+	return errcode;
+}
+
+int IsStrDigit (const char* str) {
 	
-	AddItemBinCode (bin, FindMark(marks, HashWord (&(buf_code->buf[*iter]))));
+	assert (str);
 	
-	for (; !isspace (buf_code->buf[*iter]) && *iter < buf_code->size; 
-		 (*iter)++)  {} // пропустить название метки
+	printf ("\t\tFunction IsStrDigit: str = %s\n", str);
+	for (int i = 0; i < strlen(str); i++) {
+		if (!isdigit (str[i])) {
+			return 0;
+		}
+	}
+	
+	return 1;
+}
+
+int IsMark (const buf_t *buf,
+			int iter) {
+	assert (buf);
+	
+	/*
+	SkipSpace (buf, &iter);
+	while (!isspace(*(buf->buf + iter)) && iter < buf->size - 1) {
+		if (buf->buf[iter] == ':')
+			return 1;
+		iter++;
+	}
+	*/
+	
+	char word[MAX_SIZE_WORD] = "\0";
+	int r_pos;
+	SkipSpace (buf, &iter);
+	sscanf (buf->buf + iter, "%[^;\n\t ]%n", word, &r_pos);
+	
+//	printf ("Function: IsMark. word = %s, r_pos = %i\n", word, r_pos);
+	
+	if (word[r_pos - 1] == ':')
+		return 1;
+	
+	return 0;
 }
 
 int FindMark (const marks_t *marks,
-			  const long int hash_name) {
-	assert (marks != NULL);
-	int pos = 0;
+			  const char *name) {
+	assert (marks);
+	int pos = -1;
 	
+	printf ("\t\tFunction FindMark: name marks = %s\n", name);
 	for (int i = 0; i < marks->size; i++) {
-		if (marks->mark[i].name == hash_name) {
-			pos = marks->mark[i].pos;
-			break;
+		printf("\t\tFunction FindMark: strcmp (marks->data[%i].name, name) = %i\n", 
+		i, strcmp (marks->data[i].name, name));
+		if (!strcmp (marks->data[i].name, name)) {
+			printf ("\t\tFunction FindMark: name marks = %s\tmarks->data[i].name = %s\n",
+					 name, marks->data[i].name);
+			pos = marks->data[i].pos;
+			return pos;
 		}
 	}
 	
 	return pos;
 }
 
-void JumpMark (const buf_t *buf_code,
-			   int *iter,
-			   marks_t *marks,
-			   const code_t *bin) {
-	assert (buf_code != NULL);
-	assert (iter != NULL);
-	assert (marks != NULL);
-	assert (bin != NULL);
-	
-	SkipSpace (buf_code, iter);
+void AddMark (const buf_t *buf,
+			  int *iter,
+			  marks_t *marks,
+			  code_t *bin) {
+	assert (buf);
+	assert (iter);
+	assert (marks);
 		
-	long int hash_name = HashWord (&(buf_code->buf[*iter]));
+	char mark[MAX_SIZE_WORD] = "\0";
+	int r_pos;
+	SkipSpace (buf, iter);
+	sscanf (buf->buf + *iter, "%[^;:\n\t ]%n", mark, &r_pos);
 	
-	/*
-	if (!FindMark(marks, hash_name)) {
-		char *word = NULL;
-		fprintf (stderr, "ERROR: This marker (%s) is already in use.\n", 
-				 word = WordFromString(&(buf_code->buf[*iter])));
-		free (word); word = NULL;
-	}
-	*/
-	
-	for (; !isspace (buf_code->buf[*iter]) && *iter < buf_code->size; 
-		 (*iter)++) {} // пропустить название метки
-	
-	mark_t mark = {hash_name, bin->size};
-	
-	AddMark (marks, &mark);
-}
-
-char *WordFromString (const char *string) {
-	assert (string != NULL);
-	
-	char *word = calloc (MAX_SIZE_WORD, sizeof (char));
-	
-	int i = 0;
-	for (; isspace (string[i]) && i < strlen(string); i++)  
-		{} // пропустить пробельных символов
-	
-	int j = 0;
-	for (; !isspace (string[i]) && i < strlen(string) && 
-		 j < MAX_SIZE_WORD; i++, j++) {
-		word[j] = string[i];
-	} 
-	word[++j] = '\0';
-	
-	return word;
-}
-
-void ProcessingComPush (const buf_t *buf_code,
-						int *iter, 
-						code_t *bin) {
-	assert (buf_code != NULL);
-	assert (iter!= NULL);
-	assert (bin != NULL);
-	
-	SkipSpace (buf_code, iter);
-	if (buf_code->buf[*iter] == '[') {
-		(*iter)++; // пропус '['
-		SkipSpace (buf_code, iter);
-		if (isdigit (buf_code->buf[*iter])) {
-			AddItemBinCode (bin, PUSH_STK);
-			AddItemBinCode (bin, DigitFromString(&(buf_code->buf[*iter])));
-			for (; isdigit (buf_code->buf[*iter]) && *iter < buf_code->size; 
-				 (*iter)++)  {} // пропустить число
-		} else if (!strncmp (&(buf_code->buf[*iter]), "ax", 2)) {
-			AddItemBinCode (bin, PUSH_REG);
-			AddItemBinCode (bin, AX);
-			*iter += 2; // пропус 'ax'
-		} else if (!strncmp (&(buf_code->buf[*iter]), "bx", 2)) {
-			AddItemBinCode (bin, PUSH_REG);
-			AddItemBinCode (bin, BX);
-			*iter += 2; // пропус 'bx'
-		} else if (!strncmp (&(buf_code->buf[*iter]), "cx", 2)) {
-			AddItemBinCode (bin, PUSH_REG);
-			AddItemBinCode (bin, CX);
-			*iter += 2; // пропус 'cx'
-		} else if (!strncmp (&(buf_code->buf[*iter]), "dx", 2)) {
-			AddItemBinCode (bin, PUSH_REG);
-			AddItemBinCode (bin, DX);
-			*iter += 2; // пропус 'dx'
-		} else {
-			fprintf (stderr, "Error: Invalid argument to push!\n");
-		}
-		SkipSpace (buf_code, iter);
-		if (buf_code->buf[*iter] == ']') {
-			(*iter)++; // пропус ']'
-		} else {
-			fprintf (stderr, "Error: Invalid argument to push!\n");
-		}
-	} else if (!strncmp (&(buf_code->buf[*iter]), "Ram[", 4)) {
-		*iter += 4; // пропус "Ram["
-		SkipSpace (buf_code, iter);
-		if (isdigit (buf_code->buf[*iter])) {
-			AddItemBinCode (bin, PUSH_RAM);
-			AddItemBinCode (bin, DigitFromString(&(buf_code->buf[*iter])));
-			for (; isdigit (buf_code->buf[*iter]) && *iter < buf_code->size; 
-				 (*iter)++)  {} // пропустить число
-		} else {
-			fprintf (stderr, "Error: Invalid argument to push!\n");
-		}
-		SkipSpace (buf_code, iter);
-		if (buf_code->buf[*iter] == ']') {
-			(*iter)++; // пропус ']'
-		} else {
-			fprintf (stderr, "Error: Invalid argument to push!\n");
-		}
-	} else {
-		fprintf (stderr, "Error: Invalid argument to push!\n");
-	}
-}
-
-void ProcessingComPop (const buf_t *buf_code,
-					   int *iter, 
-					   code_t *bin) {
-	assert (buf_code != NULL);
-	assert (iter != NULL);
-	assert (bin != NULL);
-
-	SkipSpace (buf_code, iter);
-	if (buf_code->buf[*iter] == '[') {
-		(*iter)++; // пропус '['
-		SkipSpace (buf_code, iter);
-		if (!strncmp (&(buf_code->buf[*iter]), "ax", 2)) {
-			AddItemBinCode (bin, POP_REG);
-			AddItemBinCode (bin, AX);
-			*iter += 2; // пропус 'ax'
-		} else if (!strncmp (&(buf_code->buf[*iter]), "bx", 2)) {
-			AddItemBinCode (bin, POP_REG);
-			AddItemBinCode (bin, BX);
-			*iter += 2; // пропус 'bx'
-		} else if (!strncmp (&(buf_code->buf[*iter]), "cx", 2)) {
-			AddItemBinCode (bin, POP_REG);
-			AddItemBinCode (bin, CX);
-			*iter += 2; // пропус 'cx'
-		} else if (!strncmp (&(buf_code->buf[*iter]), "dx", 2)) {
-			AddItemBinCode (bin, POP_REG);
-			AddItemBinCode (bin, DX);
-			*iter += 2; // пропус 'dx'
-		} else {
-			fprintf (stderr, "Error: Invalid argument to pop!\n");
-		}
-		SkipSpace (buf_code, iter);
-		if (buf_code->buf[*iter] == ']') {
-			(*iter)++; // пропус ']'
-		} else {
-			fprintf (stderr, "Error: Invalid argument to pop!\n");
-		}
-	} else if (!strncmp (&(buf_code->buf[*iter]), "Ram[", 4)) {
-		*iter += 4; // пропус "Ram["
-		
-		SkipSpace (buf_code, iter);
-		if (isdigit (buf_code->buf[*iter])) {
-			AddItemBinCode (bin, POP_RAM);
-			AddItemBinCode (bin, DigitFromString(&(buf_code->buf[*iter])));
-			for (; isdigit (buf_code->buf[*iter]) && *iter < buf_code->size; 
-				 (*iter)++)  {} // пропустить числа
-		} else {
-			fprintf (stderr, "Error: Invalid argument to pop!\n");
-		}
-		SkipSpace (buf_code, iter);
-		if (buf_code->buf[*iter] == ']') {
-			(*iter)++; // пропус ']'
-		} else {
-			fprintf (stderr, "Error: Invalid argument to pop!\n");
-		}
-	} else {
-		AddItemBinCode (bin, POP_STK);
+	if (FindMark (marks, mark) != -1) {
+		fprintf (stderr, "mark \"%s\" is used twice\n", mark);
+		exit (-1);
 	}
 	
+	printf ("\tFunction: AddMark. iter = %i\tmark = %s\tr_pos = %i\n", *iter, mark, r_pos);
+	
+	(*iter) += r_pos + 1;
+	
+	if (marks->size >= marks->max_size)
+		ResizeMarks (marks, marks->max_size + START_SIZE_MARK);
+	
+	marks->data[marks->size].name = calloc (strlen (mark) + 1, sizeof (char));
+	strcpy (marks->data[marks->size].name, mark);
+	marks->data[marks->size++].pos = bin->size;
 }
 
-int DigitFromString (const char *string) {
-	assert (string != NULL);
-	int num = 0;
+void FreeMark (marks_t *marks) {
+	assert (marks);
 	
-	int i = 0;
-	for (; isspace (string[i]) && i < strlen (string); i++) {}
-	for (; isdigit(string[i]) && i < strlen (string); i++) {
-		num = num * 10 + string[i] - '0';
+	for (int i = 0; i < marks->size; i++) {
+		free (marks->data[i].name);
+		marks->data[i].name = NULL;
 	}
-	return num;
+	free (marks->data);
+	marks->data = NULL;
 }
 
 int ResizeBinCode (code_t *bin, 
 				   int new_size) {
-	assert (bin != NULL);
+	assert (bin);
 	assert (new_size > 0);
 
 	void *p = bin->data;
@@ -437,16 +312,16 @@ int ResizeBinCode (code_t *bin,
     return 0;
 }
 
-int ResizeMarks (marks_t *code, 
+int ResizeMarks (marks_t *marks, 
 				 int new_size) {
-	assert (code != NULL);
+	assert (marks);
 	assert (new_size > 0);
 
-	void *p = code->mark;
-	code->max_size = new_size;
-	code->mark = realloc (code->mark, code->max_size * sizeof(mark_t));
-	if (code->mark == NULL) {
-		code->mark = p;
+	void *p = marks->data;
+	marks->max_size = new_size;
+	marks->data = realloc (marks->data, marks->max_size * sizeof(*(marks->data)));
+	if (marks->data == NULL) {
+		marks->data = p;
 		return 1;
 	}
  
@@ -455,7 +330,8 @@ int ResizeMarks (marks_t *code,
 
 int AddItemBinCode (code_t *bin, 
 					elem_bin value) {
-	assert (bin != NULL);
+	assert (bin);
+	
 	int errcode = 0;
 	
 	if (bin->size >= bin->max_size)
@@ -466,26 +342,24 @@ int AddItemBinCode (code_t *bin,
 	return errcode;
 }
 
-int AddMark (marks_t *marks, 
-			 const mark_t *value) {
-	assert (marks != NULL);
-	int errcode = 0;
+void SkipSpace (const buf_t *buf,
+				int *iter) {
+	assert (buf);
+	assert (iter);
 	
-	if (marks->size >= marks->max_size)
-		errcode = ResizeMarks (marks, marks->max_size + START_SIZE_MARK);
-		
-	marks->mark[marks->size++] = *value;
-	
-	return errcode;
+	// пропустить пробельных символов
+	for (; isspace (buf->buf[*iter]) && *iter < buf->size; (*iter)++)  {} 
 }
 
-void SkipSpace (const buf_t *buf_code,
-				int *iter) {
-	assert (buf_code != NULL);
-	assert (iter != NULL);
+void SkipWord (const buf_t *buf,
+			   int *iter) {
+	assert (buf);
+	assert (iter);
 	
-	for (; isspace (buf_code->buf[*iter]) && *iter < buf_code->size;
-		 (*iter)++)  {} // пропустить пробельных символов
+	int r_pos = 0; \
+		sscanf (buf->buf + *iter, "%*[^\n\t ]%n", &r_pos); \
+	*iter += r_pos; \
+
 }
 
 void Postscript () {
