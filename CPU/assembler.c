@@ -1,13 +1,12 @@
 /*!
  * \mainpage
  * \author Загребельный Аркадий
- * \version 0.1
+ * \version 0.2
  * \date Ноябрь 2019 года
  *
  * \brief Программа для ассемблирования кода для CPU
  */
 
-#include "WorkWithFiles.h"
 #include "encodings.h"
 #include "assembler.h"
 #include <stdlib.h>
@@ -360,6 +359,57 @@ void SkipWord (const buf_t *buf,
 		sscanf (buf->buf + *iter, "%*[^\n\t ]%n", &r_pos); \
 	*iter += r_pos; \
 
+}
+
+long int ReadFileToBuf (char** buf,
+					   	const char* filename,
+						const char* mode) {
+
+	assert (buf != NULL);
+	assert (filename != NULL);
+	assert (mode != NULL);
+
+	FILE* in = fopen (filename, mode);
+	if (in == NULL)
+		perror ("Открытие входного файла\n");
+
+	fseek (in, 0, SEEK_END);
+	long int size_f = ftell (in);
+	fseek (in, 0, SEEK_SET);
+
+	*buf = calloc (size_f / sizeof(**buf) + 2, sizeof(**buf));
+	if (*buf == NULL)
+		fprintf (stderr, "Сannot allocate memory to create file buffer!!!\n");
+	long int readcount = fread (*buf , sizeof(**buf), size_f / sizeof(**buf), in);
+	(*buf)[size_f / sizeof(**buf)] = '\n';
+	(*buf)[size_f / sizeof(**buf) + 1] = '\0';
+
+	fclose (in);
+
+	if (readcount != size_f)
+		fprintf (stderr, "The number of bytes read differs from the specified!!!\n");
+
+	return readcount;
+}
+
+void WriteFile (code_t *out_code,
+				const char *filename,
+				const char *mode) {
+
+	assert (out_code != NULL);
+	assert (filename != NULL);
+	assert (mode != NULL);
+
+	FILE *out = fopen (filename, mode);
+	if (out == NULL) {
+		perror ("Открытие выходного файла\n");
+	}
+	
+	if (out_code->size != fwrite (out_code->data, sizeof (out_code->data[0]), out_code->size, out)) {
+		fprintf (stderr, "The number of recording objects is different from the specified!!!\n");
+	}
+	
+	fclose (out);
 }
 
 void Postscript () {

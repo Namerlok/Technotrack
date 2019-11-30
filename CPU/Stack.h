@@ -83,7 +83,7 @@ typedef union canary_union {
  *
  * @return stack_t указатель на созданный стек
  */
-stack_t* StackCreat (char *stk_name);
+stack_t* StackCreate (char *stk_name);
 
 /*!
  * @brief Удаление стека

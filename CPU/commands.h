@@ -41,3 +41,7 @@ DEF_CMD (je, 19, 3, {})
 DEF_CMD (jne, 20, 3, {})
 
 DEF_CMD (call, 21, 1, {})
+
+DEF_CMD (out, 22, 0, {})
+
+DEF_CMD (in, 23, 0, {})

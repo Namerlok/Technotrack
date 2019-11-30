@@ -8,6 +8,21 @@
 //! название выходного файла
 #define FILE_OUT "code.bin"
 
+//! режим открытия файла
+#define WRITING "w"
+
+//! режим открытия файла
+#define APPEND "a"
+
+//! режим открытия файла
+#define READING "r"
+
+//! режим открытия файла
+#define READING_BINARY "rb"
+
+//! режим открытия файла
+#define WRITING_BINARY "wb"
+
 //! начальный размер массива храшящего ассемблированный код
 #define START_SIZE_CODE_BIN 64
 
@@ -19,7 +34,6 @@
 
 //! максимальный размер слова
 #define MAX_SIZE_WORD 128
-
 
 //----------------------------------------------------------------
 
@@ -225,6 +239,33 @@ void SkipSpace (const buf_t *buf,
  */
 void SkipWord (const buf_t *buf,
 				int *iter);
+				
+/*!
+ * @brief Считывание файла
+ *
+ * @param buf - буфер с входным файлом
+ * @param filename - имя входного файла
+ * @param mode - режим открытия входного файла
+ *
+ * @return число символов в файле
+ */
+long int ReadFileToBuf (char** buf,
+					   	const char* filename,
+						const char* mode);
+
+/*!
+ * @brief Вывод массива
+ *
+ * @param buffer - масcив указателей на выводимые строки
+ * @param buf_length - длинна массива
+ * @param filename - имя выходного файла
+ * @param mode - режим открытия выходного файла
+ *
+ * @return void
+ */
+void WriteFile (code_t *out_code,
+				const char *filename,
+				const char *mode);
 
 /*!
  * @brief Прощальные слова

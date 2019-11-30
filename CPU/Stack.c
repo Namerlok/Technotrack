@@ -6,7 +6,7 @@
 #include <ctype.h>
 #include <math.h>
 
-stack_t *StackCreat (char *stk_name) {
+stack_t *StackCreate (char *stk_name) {
 	stack_t *out = calloc (1, sizeof(stack_t));
 
 	if (out == NULL)
