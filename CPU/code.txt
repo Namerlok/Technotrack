@@ -1,16 +1,8 @@
-add
-mul
-push 1
-run:
-pop 2
-;aqqqq  qqq  wqe
-sqrt 
-;1231
-add
+in
 home:
-mul
-sin
-add
-jmp home
-je 1 3 run
+sqrt
+;dump
+push 0
+dump
+jbe home
 end

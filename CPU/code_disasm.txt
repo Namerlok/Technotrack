@@ -1,12 +1,5 @@
-add 
-mul 
-push 1 
-pop 2 
+in 
 sqrt 
-add 
-mul 
-sin 
-add 
-jmp 8 
-je 1 3 4 
+out 
+jmp 1 
 end 

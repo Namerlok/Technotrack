@@ -163,7 +163,7 @@ void StackDump (const stack_t *stk) {
 	fprintf (out, "\tsize     = %li\n", stk->top - SIZE_CANARY);
 	fprintf (out, "\tdata[%li] = [%p]\n", stk->size - 2 * SIZE_CANARY, stk->data);
 	for (int i = SIZE_CANARY; i < stk->size - SIZE_CANARY; i++)
-		fprintf (out, (i < stk->top) ? "\t\t*[%2li]: %i\n" : "\t\t [%2li]: %i\n",
+		fprintf (out, (i < stk->top) ? "\t\t*[%2li]: %li\n" : "\t\t [%2li]: %li\n",
 				 i - SIZE_CANARY, stk->data[i]);
 	fprintf (out, "\thash     = %li\n", stk->hash);
 	fprintf (out, "\tcanary2  = %lli\n", canary.canary_end);

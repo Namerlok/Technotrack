@@ -96,9 +96,13 @@ long int ReadFileToBuf (long int **buf,
 	(*buf)[size_f / sizeof(**buf) + 1] = '\0';
 
 	fclose (in);
+	
+	size_f /= sizeof(**buf);
 
-	if (readcount != size_f)
-		fprintf (stderr, "The number of bytes read differs from the specified!!!\n");
+	if (readcount != size_f) {
+		fprintf (stderr, "The number of bytes read differs from the specified!!!\n"
+						 "must: %li\tget: %li", size_f, readcount);
+	}
 
 	return readcount;
 }

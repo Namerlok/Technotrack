@@ -28,10 +28,10 @@ enum encodings_v01 {
 	END			=  5901, ///< хеширование название "endprogram"
 	CALL		=  8458, ///< хеширование название "callfunction"
 	RET			=  2362, ///< хеширование название "return"*/
-	AX			=  1, 
-	BX			=  2, 
-	CX			=  3, 
-	DX			=  4  
+	AX			=  0, 
+	BX			=  1, 
+	CX			=  2, 
+	DX			=  3  
 };
 
 #define DEF_CMD(name, code, argc, instr) \

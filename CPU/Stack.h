@@ -46,7 +46,7 @@ enum STACK_EROOR_CODE {
 //----------------------------------------------------------------
 
 //! тип элемента стека
-typedef int elem_t;
+typedef long int elem_t;
 
 //! сруктура стека
 typedef struct stack {

@@ -40,8 +40,8 @@
 typedef struct CPU {
 	stack_t *stk; // стек чисел
 	stack_t *fun_stk; // стек для вызова функций
-	int *reg;
-	int *ram;
+	long int *reg;
+	long int *ram;
 	long int *code;
 	int iter;
 	long int code_size;
@@ -50,11 +50,15 @@ typedef struct CPU {
 //----------------------------------------------------------------
 
 enum CPUERROR {
-	CPU_UNKNOWN_COMMAND,
-	CPU_STACK_ERROR,
-	CPU_MEMORY_ALLOCATION_ERROR,
-	CPU_POINTER_EQUALS_NULL,
-	CPU_GOING_BEYOND_CODE_ARR
+	CPU_UNKNOWN_COMMAND = 1,
+	CPU_STACK_ERROR = 2,
+	CPU_MEMORY_ALLOCATION_ERROR = 3,
+	CPU_POINTER_EQUALS_NULL = 4,
+	CPU_GOING_BEYOND_CODE_ARR = 5,
+	CPU_GOING_BEYOND_RAM_ARR = 6,
+	CPU_GOING_BEYOND_REGISTER_ARR = 7,
+	CPU_DIVISION_BY_ZERO = 8,
+	CPU_NEGATIVE_VAL_UNDER_ROOT = 9
 };
 
 //----------------------------------------------------------------

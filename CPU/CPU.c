@@ -11,10 +11,10 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-#include <unistd.h> 
 #include <ctype.h> 
 #include <stdio.h>
 #include "Stack.h"
+#include <math.h>
 #include "CPU.h"
 
 int main () {
@@ -23,10 +23,13 @@ int main () {
 	
 	CPU_t cpu = {};
 	
+	
 	CPUCreate (&cpu);
+	CPUDump (&cpu);
 	cpu.code_size = ReadFileToBuf (&(cpu.code), FILE_IN, READING_BINARY);
 	CPUImplementation (&cpu);
 	CPUDelete (&cpu);
+	
 	Postscript ();
 	
 	return 0;
@@ -54,8 +57,8 @@ void CPUCreate (CPU_t *cpu) {
 	if (StackOK (cpu->fun_stk) == FALSE)
 		cpu->err = CPU_STACK_ERROR;
 		
-	cpu->reg = calloc (NUMBER_OF_REGISTERS, sizeof(int));
-	cpu->ram = calloc (MEMORY_SIZE, sizeof(int));
+	cpu->reg = calloc (NUMBER_OF_REGISTERS, sizeof(long int));
+	cpu->ram = calloc (MEMORY_SIZE, sizeof(long int));
 	if (cpu->reg == NULL || cpu->ram == NULL)
 		cpu->err = CPU_MEMORY_ALLOCATION_ERROR;
 	
@@ -88,9 +91,13 @@ long int ReadFileToBuf (long int **buf,
 	(*buf)[size_f / sizeof(**buf) + 1] = '\0';
 
 	fclose (in);
+	
+	size_f /= sizeof(**buf);
 
-	if (readcount != size_f)
-		fprintf (stderr, "The number of bytes read differs from the specified!!!\n");
+	if (readcount != size_f) {
+		fprintf (stderr, "The number of bytes read differs from the specified!!!\n"
+						 "must: %li\tget: %li", size_f, readcount);
+	}
 
 	return readcount;
 }
@@ -106,7 +113,7 @@ int CPUImplementation (CPU_t *cpu) {
 		#define DEF_CMD(name, encode, argc, code) \
 		case encode: \
 			cpu->iter++; \
-			code;\
+			code \
 			break;
 		#include "commands.h"
 		#undef DEF_CMD
@@ -158,11 +165,11 @@ void CPUDump (CPU_t *cpu) {
 	StackDump (cpu->fun_stk);
 	fprintf (out, "Register[%i]: [%p] {\n", NUMBER_OF_REGISTERS, cpu->reg);
 	for (int i = 0; i < NUMBER_OF_REGISTERS; i++)
-		fprintf (out, "\t[%i] = %i\n", i, cpu->reg[i]);
+		fprintf (out, "\t[%i] = %li\n", i, cpu->reg[i]);
 	fprintf (out, "}\n");
 	fprintf (out, "RAM[%i]: [%p] {\n", MEMORY_SIZE, cpu->ram);
 	for (int i = 0; i < MEMORY_SIZE; i++)
-		fprintf (out, "\t[%i] = %i\n", i, cpu->ram[i]);
+		fprintf (out, "\t[%i] = %li\n", i, cpu->ram[i]);
 	fprintf (out, "}\n");
 	fprintf (out, "iter = %i\n", cpu->iter);
 	fprintf (out, "code_size = %li\n", cpu->code_size);
@@ -183,6 +190,14 @@ char *ErrorDefinitionCPU (int err) {
 			return "указатель равен NULL";
 		case CPU_GOING_BEYOND_CODE_ARR: 
 			return "выход за пределы массива кода";
+		case CPU_GOING_BEYOND_RAM_ARR: 
+			return "выход за пределы массива ram";
+		case CPU_GOING_BEYOND_REGISTER_ARR: 
+			return "выход за пределы массива reg";
+		case CPU_DIVISION_BY_ZERO: 
+			return "деление на нуль";
+		case CPU_NEGATIVE_VAL_UNDER_ROOT: 
+			return "отрицательное значение под квадратным корнем";
 		default: 
 			return "неопределенный код ошибки";
 	}
