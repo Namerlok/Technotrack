@@ -2,11 +2,6 @@ DEF_CMD (end, 0, 0, {
 	return TRUE;
 })
 
-DEF_CMD (push, 1, 1, {
-	long int arg = cpu->code[cpu->iter++];
-	StackPush (cpu->stk, &arg);
-})
-
 DEF_CMD (pushram, 2, 1, {
 	long int arg = cpu->code[cpu->iter++];
 		if (arg > MEMORY_SIZE) {
@@ -25,8 +20,9 @@ DEF_CMD (pushreg, 3, 1, {
 	StackPush (cpu->stk, &(cpu->reg[arg]));
 })
 
-DEF_CMD (pop, 4, 0, {
-	StackPop (cpu->stk);
+DEF_CMD (push, 1, 1, {
+	long int arg = cpu->code[cpu->iter++];
+	StackPush (cpu->stk, &arg);
 })
 
 DEF_CMD (popram, 5, 1, {
@@ -45,6 +41,10 @@ DEF_CMD (popreg, 6, 1, {
 		return FALSE;
 	}
 	cpu->reg[arg] = StackPop (cpu->stk);
+})
+
+DEF_CMD (pop, 4, 0, {
+	StackPop (cpu->stk);
 })
 
 DEF_CMD (add, 7, 0, {
@@ -110,18 +110,6 @@ DEF_CMD (jmp, 14, 1, {
 	cpu->iter = pos;
 })
 
-DEF_CMD (ja, 15, 1, {
-	long int arg1 = StackPop (cpu->stk);
-	long int arg2 = StackPop (cpu->stk);
-	long int pos = cpu->code[cpu->iter++];
-	if (pos >= cpu->code_size) {
-		cpu->err = CPU_GOING_BEYOND_CODE_ARR;
-		return FALSE;
-	}
-	if (arg2 > arg1)
-		cpu->iter = pos;
-})
-
 DEF_CMD (jae, 16, 1, {
 	long int arg1 = StackPop (cpu->stk);
 	long int arg2 = StackPop (cpu->stk);
@@ -134,7 +122,7 @@ DEF_CMD (jae, 16, 1, {
 		cpu->iter = pos;
 })
 
-DEF_CMD (jb, 17, 1, {
+DEF_CMD (ja, 15, 1, {
 	long int arg1 = StackPop (cpu->stk);
 	long int arg2 = StackPop (cpu->stk);
 	long int pos = cpu->code[cpu->iter++];
@@ -142,7 +130,7 @@ DEF_CMD (jb, 17, 1, {
 		cpu->err = CPU_GOING_BEYOND_CODE_ARR;
 		return FALSE;
 	}
-	if (arg2 < arg1)
+	if (arg2 > arg1)
 		cpu->iter = pos;
 })
 
@@ -155,6 +143,18 @@ DEF_CMD (jbe, 18, 1, {
 		return FALSE;
 	}
 	if (arg2 <= arg1)
+		cpu->iter = pos;
+})
+
+DEF_CMD (jb, 17, 1, {
+	long int arg1 = StackPop (cpu->stk);
+	long int arg2 = StackPop (cpu->stk);
+	long int pos = cpu->code[cpu->iter++];
+	if (pos >= cpu->code_size) {
+		cpu->err = CPU_GOING_BEYOND_CODE_ARR;
+		return FALSE;
+	}
+	if (arg2 < arg1)
 		cpu->iter = pos;
 })
 
@@ -183,7 +183,7 @@ DEF_CMD (jne, 20, 1, {
 })
 
 DEF_CMD (call, 21, 1, {
-	long int pos = StackPop (cpu->stk);
+	long int pos = cpu->code[cpu->iter++];
 	if (pos >= cpu->code_size) {
 		cpu->err = CPU_GOING_BEYOND_CODE_ARR;
 		return FALSE;
@@ -202,11 +202,15 @@ DEF_CMD (out, 23, 0, {
 
 DEF_CMD (in, 24, 0, {
 	long int arg = 0;
-	printf ("write nember: ");
+	printf ("write number: ");
 	scanf ("%li", &arg);
 	StackPush (cpu->stk, &(arg));
 })
 
 DEF_CMD (dump, 25, 0, {
 	CPUDump (cpu);
+})
+
+DEF_CMD (meow, 26, 0, {
+	printf ("meow\n");
 })

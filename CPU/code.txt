@@ -1,8 +1,23 @@
 in
-home:
-sqrt
-;dump
-push 0
-dump
-jbe home
+call Factorial
+out
 end
+
+Factorial:
+	popreg ax
+	pushreg ax
+	pushreg ax
+	push 1
+	sub
+	popreg ax
+	pushreg ax
+	pushreg ax
+	push 1
+	ja fan
+	mul
+	ret
+
+	fan:
+	call Factorial
+	mul
+	ret

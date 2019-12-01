@@ -199,7 +199,10 @@ int IsStrDigit (const char* str) {
 	assert (str);
 	
 	printf ("\t\tFunction IsStrDigit: str = %s\n", str);
-	for (int i = 0; i < strlen(str); i++) {
+	int i = 0;
+	if (str[i] == '+' || str[i] == '-')
+		i++;
+	for (; i < strlen(str); i++) {
 		if (!isdigit (str[i])) {
 			return 0;
 		}
@@ -419,3 +422,114 @@ void Postscript () {
 			"# Program finished working is over               #\n"
 			"##################################################\n");
 }
+
+
+/*
+in ;a
+popreg ax
+in ;b
+popreg bx
+in ;c
+popreg cx
+
+pushreg ax
+push 0
+je to1
+
+pushreg bx
+pushreg bx
+mul
+push 4
+pushreg ax
+pushreg cx
+mul
+mul
+sub
+
+popreg dx
+pushreg dx
+push 0
+jb to3
+
+pushreg dx
+sqrt
+popreg dx
+push 2
+out
+pushreg bx
+push -1
+mul
+pushreg dx
+sub
+pushreg ax
+push 2
+mul
+div
+out
+pushreg bx
+push -1
+mul
+pushreg dx
+add
+pushreg ax
+push 2
+mul
+div
+out
+end
+
+to1:
+pushreg bx
+push 0
+je to2
+
+push 1
+out
+pushreg cx
+push -1
+mul
+pushreg bx
+div
+out
+end
+
+to2:
+pushreg cx
+push 0
+jne to3
+
+push 3
+out
+end
+
+to3:
+push 0
+out
+end
+
+* //////////////////
+in
+call Factorial
+out
+end
+
+Factorial:
+	popreg ax
+	pushreg ax
+	pushreg ax
+	push 1
+	sub
+	popreg ax
+	pushreg ax
+	pushreg ax
+	push 1
+	ja fan
+	mul
+	ret
+
+	fan:
+	call Factorial
+	mul
+	ret
+
+ */

@@ -1,5 +1,7 @@
 in 
 sqrt 
-out 
-jmp 1 
+push 0 
+dump 
+meow 
+jbe 1 
 end 

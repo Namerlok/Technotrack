@@ -1,13 +1,13 @@
-CPU [0x7fff384961f0] {
-Stack [0x7fff384961f0]:
-Function stack: [0x7fff384961f8]
-Register[4]: [0x563cc7333930] {
+CPU [0x7ffdda51db40] {
+Stack: [0x5569c431b670]
+Function stack: [0x5569c431b7d0]
+Register[4]: [0x5569c431b930] {
 	[0] = 0
 	[1] = 0
 	[2] = 0
 	[3] = 0
 }
-RAM[16]: [0x563cc7333960] {
+RAM[16]: [0x5569c431b960] {
 	[0] = 0
 	[1] = 0
 	[2] = 0

@@ -159,9 +159,9 @@ void CPUDump (CPU_t *cpu) {
 		perror ("Открытие файла для cpu damp\n");
 	
 	fprintf (out, "CPU [%p] {\n", cpu);
-	fprintf (out, "Stack [%p]:\n", &(cpu->stk));
+	fprintf (out, "Stack: [%p]\n", cpu->stk);
 	StackDump (cpu->stk);
-	fprintf (out, "Function stack: [%p]\n", &(cpu->fun_stk));
+	fprintf (out, "Function stack: [%p]\n", cpu->fun_stk);
 	StackDump (cpu->fun_stk);
 	fprintf (out, "Register[%i]: [%p] {\n", NUMBER_OF_REGISTERS, cpu->reg);
 	for (int i = 0; i < NUMBER_OF_REGISTERS; i++)
