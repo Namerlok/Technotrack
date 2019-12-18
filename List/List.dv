@@ -1,0 +1,19 @@
+digraph list {
+	rankdir=LR;
+	e0 [color=grey, shape=box];
+	e1 [color=green, shape=box, xlabel = "tail"];
+	e2 [color=green, shape=box];
+	e3 [color=green, shape=box, xlabel = "head"];
+	e4 [color=red, shape=box, xlabel = "free"];
+	e5 [color=red, shape=box];
+	e0 -> e0 [color=green];
+	e0 -> e0 [color=blue];
+	e1 -> e0 [color=green];
+	e1 -> e2 [color=blue];
+	e2 -> e1 [color=green];
+	e2 -> e3 [color=blue];
+	e3 -> e2 [color=green];
+	e3 -> e0 [color=blue];
+	e4 -> e5 [color=green];
+	e5 -> e0 [color=green];
+}

@@ -16,10 +16,10 @@
 #define OUT_DUMP_GRAPH_FILE "List.dv"
 
 #ifdef NDEBUG
-	#define LIST_ASSERT_OK(lst)
+	#define LIST_ASSERT_OK(lst) ;
 #else
 	#define LIST_ASSERT_OK(lst) \
-		if (ListOK == FALSE) { \
+		if (ListOK ((lst)) == FALSE) { \
 			ListDump ((lst), OUT_DUMP_FILE, OUT_DUMP_GRAPH_FILE); \
 			assert(!"ListOK\n"); \
 		}
@@ -93,7 +93,7 @@ int ListInsert (list_t *lst,
 int ListRemove (list_t *lst, 
 				const int index);
 
-int ListFind (const list_t *lst,
+int ListFind (list_t *lst,
 			  list_data_t *elem);
 
 bool ListCompareElem (list_data_t *elem1,
@@ -111,7 +111,7 @@ int ListGetPrev (list_t *lst,
 int ListSort (list_t *lst);
 
 int ListSwap (list_t *lst, 
-			  const int i, 
-			  const int j);
+			  int i, 
+			  int j);
 
 #endif

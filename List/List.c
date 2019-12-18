@@ -13,6 +13,25 @@
 #include <stdio.h>
 #include "List.h"
 
+/*
+int main () {
+	
+	list_t lst = {};
+	
+	ListCreat (&lst, "lst", 5);
+	
+	ListInsert (&lst, 0, 1);
+	ListInsert (&lst, 0, 2);
+	ListInsert (&lst, 0, 3);
+	
+	ListDump (&lst, OUT_DUMP_FILE, OUT_DUMP_GRAPH_FILE);
+	
+	ListDelete (&lst);
+	
+	return 0;
+}
+*/
+
 int ListCreat (list_t *lst, 
 			   const char *lst_name, 
 			   const size_t crt_size) {
@@ -55,6 +74,8 @@ int ListCreat (list_t *lst,
 
 int ListClear (list_t *lst) {
 	assert (lst);
+	
+	LIST_ASSERT_OK (lst);
 	
 	// нулевой элемент не используется
 	lst->data[0] = 0;
@@ -279,9 +300,31 @@ void ListDumpGraph (const list_t *lst,
 	FILE* out = fopen (out_file, "wb");
 	if (out == NULL)
 		perror ("Открытие выходного файла ListDump\n");
-	
-	
-	
+	fprintf(out, "digraph list {\n");
+	fprintf(out, "\trankdir=LR;\n");
+	fprintf(out, "\te0 [color=grey, shape=box];\n");
+	for (int i = 1; i <= lst->max_size; i++) {
+		fprintf(out, "\te%d [color=%s, shape=box", 
+				i, lst->prev[i] == FREE_ELEM_PREV ? "red" : "green");
+		if (i == lst->head) {
+			fprintf(out, ", xlabel = \"head\"");
+		}
+		if (i == lst->tail) {
+			fprintf(out, ", xlabel = \"tail\"");
+		}
+		if (i == lst->free) {
+			fprintf(out, ", xlabel = \"free\"");
+		}
+		fprintf(out, "];\n");
+	}
+	for (int i = 0; i <= lst->max_size; i++) {
+		fprintf(out, "\te%d -> e%d [color=green];\n", i, lst->next[i]);
+		if (lst->prev[i] != FREE_ELEM_PREV) {
+			fprintf(out, "\te%d -> e%d [color=blue];\n", 
+					i, lst->prev[i]);
+		}
+	}
+	fprintf(out, "}\n");
 	fclose (out);
 }
 
@@ -417,7 +460,7 @@ int ListRemove (list_t *lst,
 	return lst->errno;
 }
 
-int ListFind (const list_t *lst,
+int ListFind (list_t *lst,
 			  list_data_t *elem) {
 	assert (lst);
 	assert (elem);
@@ -501,8 +544,8 @@ int ListSort (list_t *lst) {
 }
 
 int ListSwap (list_t *lst, 
-			  const int i, 
-			  const int j) {
+			  int i, 
+			  int j) {
 	assert (lst);
 	
 	if (i > lst->max_size || i <= 0 || j > lst->max_size || j <= 0) {
@@ -535,7 +578,7 @@ int ListSwap (list_t *lst,
 		if (j == lst->tail) {
 			lst->tail = i;
 		} else {
-			lst->[jnext] = i;
+			lst->prev[jnext] = i;
 		}
 		
 		if (j == lst->head) {
@@ -565,6 +608,10 @@ int ListSwap (list_t *lst,
 	if (lst->prev[i] != FREE_ELEM_PREV && 
 		lst->prev[j] != FREE_ELEM_PREV) {
 		
+		list_data_t t = lst->data[i];
+		lst->data[i] = lst->data[j];
+		lst->data[j] = t;
+		
 		// случай если два элемента идут последовательно 
 		if (lst->next[i] == j || lst->next[j] == i) {
 			if (lst->next[j] == i) {
@@ -572,10 +619,6 @@ int ListSwap (list_t *lst,
 				i = j;
 				j = t;
 			}
-			
-			list_data_t t = lst->data[i];
-			lst->data[i] = lst->data[j];
-			lst->data[j] = t;
 			
 			int jnext = lst->next[j];
 			int iprev = lst->prev[i];
@@ -610,10 +653,6 @@ int ListSwap (list_t *lst,
 			
 			return lst->errno;
 		}
-		
-		list_data_t t = lst->data[i];
-		lst->data[i] = lst->data[j];
-		lst->data[j] = t;
 		
 		int inext = lst->next[i];
 		int jnext = lst->next[j];

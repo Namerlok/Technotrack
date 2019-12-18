@@ -1,0 +1,30 @@
+list_t "lst" [0x7ffdcc092390] {
+	data [0x560c8a583260]:
+		[ 0]: 0
+		[ 1]: 1
+		[ 2]: 2
+		[ 3]: 3
+		[ 4]: 0
+		[ 5]: 0
+	next [0x560c8a583280]:
+		[ 0]:  0
+		[ 1]:  0
+		[ 2]:  1
+		[ 3]:  2
+		[ 4]:  5
+		[ 5]:  0
+	prev [0x560c8a5832a0]:
+		[ 0]:  0
+		[ 1]:  2
+		[ 2]:  3
+		[ 3]:  0
+		[ 4]: -1
+		[ 5]: -1
+	size [0x7ffdcc0923b0] = 3
+	max size [0x7ffdcc0923b8] = 5
+	head [0x7ffdcc0923c0] = 3
+	tail [0x7ffdcc0923c4] = 1
+	free [0x7ffdcc0923c8] = 4
+	sorted [0x7ffdcc0923cc] = 0
+	errno [0x7ffdcc0923d0] = 0 (OK)
+}
