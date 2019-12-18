@@ -6,8 +6,8 @@
 #ifndef BOOL
 #define BOOL
 
-#define TRUE 1
-#define FALSE 0
+	#define TRUE 1
+	#define FALSE 0
 
 #endif
 
@@ -25,7 +25,7 @@
 		}
 #endif
 
-
+//----------------------------------------------------------------
 
 typedef int list_data_t;
 typedef int bool;
@@ -56,11 +56,13 @@ enum ListError {
 	LIST_SORTED_ERROR
 };
 
-enum Const {
+enum ListConst {
 	END_LIST = 0,
 	FREE_ELEM_PREV = -1,
 	MULTIPLIER_LIST = 2
 };
+
+//----------------------------------------------------------------
 
 int ListCreat (list_t *lst, 
 			   const char *lst_name, 
@@ -105,5 +107,11 @@ int ListGetNext (list_t *lst,
 
 int ListGetPrev (list_t *lst,
 				 const int index);
+
+int ListSort (list_t *lst);
+
+int ListSwap (list_t *lst, 
+			  const int i, 
+			  const int j);
 
 #endif

@@ -475,3 +475,191 @@ int ListGetPrev (list_t *lst,
 	
 	return lst->prev[index];
 }
+
+int ListSort (list_t *lst) {
+	assert (lst);
+	
+	int i = lst->head;
+	int j = 1;
+	while (i != END_LIST) {
+		if (i != j)
+			ListSwap (lst, i, j);
+		i = lst->next[j++];
+	}
+	
+	lst->free = j;
+	for (; j <= lst->max_size; j++) {
+		lst->data[j] = 0;
+		lst->next[j] = j + 1;
+		lst->prev[j] = FREE_ELEM_PREV;
+	}
+	lst->next[j] = END_LIST;
+	
+	lst->sorted = TRUE;
+	
+	return lst->errno;
+}
+
+int ListSwap (list_t *lst, 
+			  const int i, 
+			  const int j) {
+	assert (lst);
+	
+	if (i > lst->max_size || i <= 0 || j > lst->max_size || j <= 0) {
+		lst->errno = LIST_INDEX_OUT_OF_BOUNDS;
+		return lst->errno;
+	}
+	
+	if (lst->prev[i] == FREE_ELEM_PREV &&
+		lst->prev[j] == FREE_ELEM_PREV) {
+		return lst->errno;
+	}
+	
+	if (lst->prev[j] == FREE_ELEM_PREV && 
+		lst->prev[i] != FREE_ELEM_PREV) {
+		
+		int t = i;
+		i = j;
+		j = t;	
+	}
+	
+	if (lst->prev[i] == FREE_ELEM_PREV &&
+		lst->prev[j] != FREE_ELEM_PREV) {
+		
+		int inext = lst->next[i];
+		int jnext = lst->next[j];
+		int jprev = lst->prev[j];
+		
+		lst->data[i] = lst->data[j];
+		
+		if (j == lst->tail) {
+			lst->tail = i;
+		} else {
+			lst->[jnext] = i;
+		}
+		
+		if (j == lst->head) {
+			lst->head = i;
+		} else {
+			lst->next[jprev] = i;
+		}
+		lst->next[i] = jnext;
+		lst->prev[i] = jprev;
+		
+		lst->data[j] = END_LIST;
+		lst->next[j] = lst->free;
+		lst->prev[j] = FREE_ELEM_PREV;
+		
+		int it = lst->free;
+		while (lst->next[it] != i) {
+			it = lst->next[it];
+		}
+		lst->next[it] = inext;
+		lst->free = j;
+		
+		lst->sorted = FALSE;
+		
+		return lst->errno;
+	}
+	
+	if (lst->prev[i] != FREE_ELEM_PREV && 
+		lst->prev[j] != FREE_ELEM_PREV) {
+		
+		// случай если два элемента идут последовательно 
+		if (lst->next[i] == j || lst->next[j] == i) {
+			if (lst->next[j] == i) {
+				int t = i;
+				i = j;
+				j = t;
+			}
+			
+			list_data_t t = lst->data[i];
+			lst->data[i] = lst->data[j];
+			lst->data[j] = t;
+			
+			int jnext = lst->next[j];
+			int iprev = lst->prev[i];
+			int new_head = END_LIST; 
+			int new_tail = END_LIST;
+			
+			if (j == lst->tail) {
+				new_tail = i;
+			} else {
+				lst->prev[jnext] = i;
+			}
+			lst->prev[i] = j;
+			lst->next[i] = jnext;
+			
+			if (i == lst->head) {
+				new_head = j;
+			} else {
+				lst->next[iprev] = j;
+			}
+			lst->next[j] = i;
+			lst->prev[j] = iprev;
+			
+			if (new_head != END_LIST) {
+				lst->head = new_head;
+			}
+			
+			if (new_tail != END_LIST) {
+				lst->tail = new_tail;
+			}
+			
+			lst->sorted = FALSE;
+			
+			return lst->errno;
+		}
+		
+		list_data_t t = lst->data[i];
+		lst->data[i] = lst->data[j];
+		lst->data[j] = t;
+		
+		int inext = lst->next[i];
+		int jnext = lst->next[j];
+		int iprev = lst->prev[i];
+		int jprev = lst->prev[j];
+		int new_head = END_LIST; 
+		int new_tail = END_LIST;
+		
+		if (j == lst->tail) {
+			new_tail = i;
+		} else {
+			lst->prev[jnext] = i;
+		}
+		if (j == lst->head) {
+			new_tail = i;
+		} else {
+			lst->next[jprev] = i;
+		}
+		lst->next[i] = jnext;
+		lst->prev[i] = jprev;
+		
+		if (i == lst->tail) {
+			new_tail = j;
+		} else {
+			lst->prev[inext] = j;
+		}
+		if (i == lst->head) {
+			new_head = j;
+		} else {
+			lst->next[iprev] = j;
+		}
+		lst->next[j] = inext;
+		lst->prev[j] = iprev;
+		
+		if (new_head != END_LIST) {
+			lst->head = new_head;
+		}
+		
+		if (new_tail != END_LIST) {
+			lst->tail = new_tail;
+		}
+		
+		lst->sorted = FALSE;
+		
+		return lst->errno;
+	}
+	
+	return lst->errno;
+}
