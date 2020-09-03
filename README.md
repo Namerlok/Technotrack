@@ -8,4 +8,3 @@ Tasks:
 2) Stack
 3) SoftCPU (+ assembler, disassembler)
 4) List
-5) Tree
